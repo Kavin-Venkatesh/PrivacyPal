@@ -159,3 +159,25 @@
 - Rotation, process death (filters kept), light/dark, logcat clean; night mode restored to the user's setting.
 - From 1.4 on, verification was on the phone instead of new test files (user request).
 - Merged to main, tagged `v0.1.0`.
+
+## Phase 2 – Mic and Camera Watchdog (branch `phase-2-watchdog`)
+
+Plan decisions: foreground service type `specialUse` (camera/microphone types need CAMERA/RECORD_AUDIO, which we
+never request, and are barred from BOOT_COMPLETED; dataSync has a 6 h/24 h limit and is barred from BOOT_COMPLETED on
+Android 15+; systemExempted needs a role we don't have). Testing: phone verification only, plus one Room migration
+test (user decision).
+
+### 2.1 Sensor monitors
+- `domain/watchdog`: `Sensor`, `SensorEvent` (STARTED / STOPPED / CANCELLED per source), `SensorSession`
+  (duration, `isShort` < 1 s, kept), `SensorSessionTracker` (pairs starts and stops per sensor; overlapping sources,
+  e.g. two cameras, merge into one session; duplicate/unmatched signals ignored; CANCELLED discards a session).
+- `data/watchdog`: `AudioManagerMicMonitor` (`registerAudioRecordingCallback`, empty ↔ non-empty, an already
+  running recording counts from registration) and `CameraManagerCameraMonitor` (`registerAvailabilityCallback` per
+  camera id; `TorchCallback` so the flashlight is not reported as camera use). Cold `Flow`s, no permissions.
+  PrivacyPal never opens a camera, so there is no own use to filter. Hilt `WatchdogModule`.
+- Debug-only `MonitorDebugReceiver` (src/debug, absent from the release manifest) logs monitor events via adb.
+- Verified on moto g34 (Android 15): system Camera open ~6 s → one CAMERA session of 6445 ms; voice assistant
+  (`VOICE_COMMAND`) → one MICROPHONE session of 8361 ms (system audio log shows the same recording). Found: while
+  PrivacyPal is cached, Android's app freezer stops callbacks (a recording was missed until the process was
+  unfrozen with `am unfreeze`), which is why 2.3 runs the monitors in a foreground service. Merged debug and release
+  manifests contain no RECORD_AUDIO or CAMERA. Torch filtering not checked on device (no adb way to toggle the torch).
