@@ -56,3 +56,14 @@
   Compose-friendly overrides), lint `abortOnError`. All findings fixed. `docs/TESTING.md` explains the commands.
 - Verified: assembleDebug, testDebugUnitTest (27), verifyRoborazziDebug, lintDebug (no issues), spotlessCheck,
   detekt all pass; connectedDebugAndroidTest 2/2 on moto g34 (Android 15).
+
+### 0.6 Continuous integration
+- `.github/workflows/android.yml`: push + pull_request, ubuntu-latest, Temurin 21, Gradle caching; runs
+  assembleDebug, testDebugUnitTest, verifyRoborazziDebug, lintDebug, detekt, spotlessCheck; uploads reports on failure.
+- Verified: first run green (GitHub Actions run 40167737064). Screenshot baselines recorded on Windows verify
+  on Linux without a tolerance.
+
+### Phase 0 end
+- Final device check (moto g34, Android 15): all four tabs in light and dark, logcat clean, night mode restored.
+- Known cosmetic issue: commit fc67b2f's subject starts with a UTF-8 BOM (left as is; no history rewrite).
+- Merged to main, tagged `v0.0.1`.
