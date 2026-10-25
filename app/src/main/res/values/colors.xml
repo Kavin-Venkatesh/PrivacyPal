@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match the Compose brand surface so there is no flash before the first frame. -->
+    <color name="window_background">#FFF5FAFB</color>
+    <color name="ic_launcher_background">#FF006A6A</color>
+</resources>
