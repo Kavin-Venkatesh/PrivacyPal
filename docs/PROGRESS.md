@@ -67,3 +67,20 @@
 - Final device check (moto g34, Android 15): all four tabs in light and dark, logcat clean, night mode restored.
 - Known cosmetic issue: commit fc67b2f's subject starts with a UTF-8 BOM (left as is; no history rewrite).
 - Merged to main, tagged `v0.0.1`.
+
+## Phase 1 – Permission Auditor (branch `phase-1-permission-auditor`)
+
+### 1.1 Package scanner
+- `domain/model/PermissionGroup` (14 groups; background location separate), `InstalledApp`, `AppCategory`,
+  `PermissionState`; `domain/permissions/PermissionGroups` maps ~50 raw permission names (incl. Android 16
+  health permissions) to groups; `domain/apps/visibleApps` hides system apps by default.
+- `data/scanner/InstalledAppsSource` + `PackageManagerAppsSource` (PackageInfoFlags on API 33+, int flags below;
+  granted = `REQUESTED_PERMISSION_GRANTED`; PrivacyPal excluded), `PackageInfoMapper`, lazy `AppIconLoader`
+  (LRU cache, never stored). Hilt `ScannerModule`, `DispatchersModule` (`@IoDispatcher`).
+- "System app" follows the system permission manager: preinstalled AND no launcher icon (so Chrome-like
+  preinstalled apps stay visible).
+- Manifest: `QUERY_ALL_PACKAGES` with a comment on the Play permissions declaration.
+- Tests: `PermissionGroupsTest`, `PackageInfoMapperTest` (Robolectric), `PackageManagerAppsSourceTest`
+  (Robolectric ShadowPackageManager), `AppListFilterTest`; device test `PackageManagerAppsSourceDeviceTest`.
+- Verified: build, 48 unit tests, lint/detekt/spotless clean, screenshots unchanged; connectedDebugAndroidTest 4/4
+  on moto g34 (scanner sees the installed apps, not itself; Settings visible with launcher icon).
