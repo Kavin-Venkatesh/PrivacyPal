@@ -21,3 +21,15 @@
 - Tests: `ContrastTest` checks >= 4.5:1 (WCAG) for risk/onRisk, risk/surface and key brand text pairs, both themes.
 - Verified: build, unit tests (5/5), lint clean; on device in system dark and light: status bar icons readable,
   text contrast fine, logcat clean. System night mode restored to its original value (yes).
+
+### 0.3 Theme setting
+- `domain/model/ThemeMode`, `ThemeSettings`; `domain/theme/ThemeResolver.kt` (pure Kotlin).
+- `data/settings/SettingsRepository` + `DataStoreSettingsRepository` (Preferences DataStore, corruption handler,
+  unknown values fall back to SYSTEM); Hilt `DataStoreModule`, `RepositoryModule`.
+- `ui/MainViewModel` (StateFlow `Loading`/`Ready`); `MainActivity` applies settings instantly and holds the splash
+  until loaded.
+- Tests: `DataStoreSettingsRepositoryTest` (6, temp-file DataStore), `ThemeResolverTest` (5), `MainViewModelTest` (2).
+  Note: the repository test uses `OkioStorage` because DataStore's default `FileStorage` cannot replace files
+  on Windows hosts (`File.renameTo`); production on Android is unaffected.
+- Verified: build, 18/18 unit tests, lint clean; launched on device, follows system dark mode, logcat clean.
+  In-app switching is verified on device in 0.4 once the Settings screen exists.
