@@ -25,3 +25,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Device screenshots from manual checks
+shots/
