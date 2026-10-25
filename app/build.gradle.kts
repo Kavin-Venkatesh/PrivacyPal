@@ -58,6 +58,10 @@ android {
         }
     }
 
+    // Room's MigrationTestHelper reads exported schemas from assets; Robolectric only sees the app's
+    // merged assets, so add them to debug builds (never release).
+    sourceSets.getByName("debug").assets.directories.add("$projectDir/schemas")
+
     lint {
         abortOnError = true
         warningsAsErrors = false

@@ -11,6 +11,24 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!--
+        Usage access (granted by the user in Settings, never by a dialog): shows which app was on screen
+        when the microphone or camera started, so the watchdog can name the LIKELY app. Stays on device.
+    -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!--
+        Mic and camera watchdog: a foreground service keeps PrivacyPal awake to receive the system's
+        "microphone/camera in use" callbacks. specialUse because it never records or opens a camera.
+        POST_NOTIFICATIONS shows its status and alerts; RECEIVE_BOOT_COMPLETED restarts it after a reboot.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".PrivacyPalApplication"
         android:allowBackup="false"
@@ -24,6 +42,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.PrivacyPal.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +50,41 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.WatchdogService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Privacy monitor: listens to system callbacks that report when the microphone or camera starts and stops being used by any app, and notifies the user. Does not record audio or use the camera." />
+        </service>
+
+        <!-- WorkManager is initialised by PrivacyPalApplication (Hilt worker factory), not on startup. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <receiver
+            android:name=".service.MuteAlertsReceiver"
+            android:exported="false" />
+
+        <!-- Exported so the system can deliver boot and app-update broadcasts; checks the action. -->
+        <receiver
+            android:name=".service.WatchdogStartReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

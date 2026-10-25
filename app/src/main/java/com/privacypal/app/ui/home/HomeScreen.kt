@@ -1,5 +1,13 @@
 package com.privacypal.app.ui.home
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,8 +30,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -32,7 +44,10 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.privacypal.app.R
 import com.privacypal.app.domain.apps.RatedApp
@@ -46,17 +61,61 @@ import com.privacypal.app.ui.risk.labelRes
 fun HomeRoute(
     onAppClick: (String) -> Unit,
     onSeeAllApps: () -> Unit,
+    onSetUpUsageAccess: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state, onAppClick = onAppClick, onSeeAllApps = onSeeAllApps, modifier = modifier)
+    val watchdog by viewModel.watchdog.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var notificationsAllowed by remember { mutableStateOf(context.notificationsAllowed()) }
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshUsageAccess()
+        notificationsAllowed = context.notificationsAllowed()
+        onPauseOrDispose {}
+    }
+    // Turning the watchdog on asks for notifications (Android 13+); it runs whatever the answer.
+    val requestNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        notificationsAllowed = context.notificationsAllowed()
+        viewModel.setWatchdogEnabled(true)
+    }
+    val actions = WatchdogActions(
+        onEnabledChange = { enabled ->
+            if (enabled && context.shouldAskForNotifications()) {
+                requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.setWatchdogEnabled(enabled)
+            }
+        },
+        onAllowNotifications = { context.openNotificationSettings() },
+        onSetUpUsageAccess = onSetUpUsageAccess,
+    )
+    HomeScreen(
+        state = state,
+        watchdog = watchdog?.copy(notificationsAllowed = notificationsAllowed),
+        watchdogActions = actions,
+        onAppClick = onAppClick,
+        onSeeAllApps = onSeeAllApps,
+        modifier = modifier,
+    )
+}
+
+private fun Context.notificationsAllowed() = NotificationManagerCompat.from(this).areNotificationsEnabled()
+
+private fun Context.shouldAskForNotifications() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+    ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+    PackageManager.PERMISSION_GRANTED
+
+private fun Context.openNotificationSettings() {
+    startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
 }
 
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     modifier: Modifier = Modifier,
+    watchdog: WatchdogCardState? = null,
+    watchdogActions: WatchdogActions = WatchdogActions(),
     onAppClick: (String) -> Unit = {},
     onSeeAllApps: () -> Unit = {},
 ) {
@@ -101,6 +160,7 @@ fun HomeScreen(
                 .padding(vertical = 24.dp),
         ) {
             ScreenTitle(stringResource(R.string.home_title), Modifier.padding(horizontal = 16.dp))
+            watchdog?.let { WatchdogCard(it, watchdogActions) }
             PermissionCard(state, onAppClick, onSeeAllApps)
         }
     }

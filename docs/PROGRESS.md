@@ -159,3 +159,152 @@
 - Rotation, process death (filters kept), light/dark, logcat clean; night mode restored to the user's setting.
 - From 1.4 on, verification was on the phone instead of new test files (user request).
 - Merged to main, tagged `v0.1.0`.
+
+## Phase 2 – Mic and Camera Watchdog (branch `phase-2-watchdog`)
+
+Plan decisions: foreground service type `specialUse` (camera/microphone types need CAMERA/RECORD_AUDIO, which we
+never request, and are barred from BOOT_COMPLETED; dataSync has a 6 h/24 h limit and is barred from BOOT_COMPLETED on
+Android 15+; systemExempted needs a role we don't have). Testing: phone verification only, plus one Room migration
+test (user decision).
+
+### 2.1 Sensor monitors
+- `domain/watchdog`: `Sensor`, `SensorEvent` (STARTED / STOPPED / CANCELLED per source), `SensorSession`
+  (duration, `isShort` < 1 s, kept), `SensorSessionTracker` (pairs starts and stops per sensor; overlapping sources,
+  e.g. two cameras, merge into one session; duplicate/unmatched signals ignored; CANCELLED discards a session).
+- `data/watchdog`: `AudioManagerMicMonitor` (`registerAudioRecordingCallback`, empty ↔ non-empty, an already
+  running recording counts from registration) and `CameraManagerCameraMonitor` (`registerAvailabilityCallback` per
+  camera id; `TorchCallback` so the flashlight is not reported as camera use). Cold `Flow`s, no permissions.
+  PrivacyPal never opens a camera, so there is no own use to filter. Hilt `WatchdogModule`.
+- Debug-only `MonitorDebugReceiver` (src/debug, absent from the release manifest) logs monitor events via adb.
+- Verified on moto g34 (Android 15): system Camera open ~6 s → one CAMERA session of 6445 ms; voice assistant
+  (`VOICE_COMMAND`) → one MICROPHONE session of 8361 ms (system audio log shows the same recording). Found: while
+  PrivacyPal is cached, Android's app freezer stops callbacks (a recording was missed until the process was
+  unfrozen with `am unfreeze`), which is why 2.3 runs the monitors in a foreground service. Merged debug and release
+  manifests contain no RECORD_AUDIO or CAMERA. Torch filtering not checked on device (no adb way to toggle the torch).
+
+### 2.2 Likely-app detection
+- `domain/watchdog/LikelyApp`: `LikelyAppRules.resolve` picks the app on screen when a sensor started from usage
+  events (events up to 2 s after the start count). Confidence HIGH (came on screen within 2 s), MEDIUM (≤ 60 s),
+  LOW (longer). Home screens, System UI and PrivacyPal are never the likely app (→ "nothing on screen", i.e. the
+  sensor was used in the background). Always labelled "likely", never certain.
+- `data/watchdog/ForegroundAppResolver`: `AppOpsUsageAccessChecker` (GET_USAGE_STATS app op) and
+  `UsageStatsForegroundAppResolver` (`UsageStatsManager.queryEvents`, waits until 2.5 s after the start because
+  usage events are written with a delay). Without usage access it returns "unavailable" and nothing is queried.
+- Usage Access onboarding: Settings → "Mic and camera" → "Likely-app detection" opens a screen explaining the
+  limit, what is read, what happens without it and that nothing leaves the phone, with a status card and a button
+  that opens PrivacyPal's own toggle in system Settings. Status refreshes on resume.
+- `PACKAGE_USAGE_STATS` declared (special access the user grants in Settings; not a runtime permission).
+- Verified on moto g34: the button opens Settings > Usage access on PrivacyPal's toggle; status changes off → on
+  after granting; screen checked in light and dark. Camera app → `com.motorola.camera3` HIGH; voice assistant →
+  `com.google.android.googlequicksearchbox` HIGH. Found: the first try gave "nothing on screen" because the app's
+  RESUMED event is logged after the mic starts; fixed with the settle delay. With access off → unavailable.
+  Logcat clean. Usage access left on for the rest of Phase 2 testing (restored at phase end).
+
+### 2.3 Watchdog service and storage
+- `service/WatchdogService`: Hilt foreground service, type `specialUse` (subtype property in the manifest), START_STICKY.
+  Runs `WatchdogRecorder`, which merges both monitors into `SensorSessionTracker` and writes each use to Room: a row
+  at the start (with screen on/off from `PowerManager.isInteractive`), the likely app a few seconds later in its own
+  coroutine (the resolver waits for usage events), the end time at the stop. A torch-cancelled camera use is
+  deleted. On start, uses left open by an earlier run are marked `interrupted` (end unknown).
+- Low-importance `watchdog_status` channel; ongoing silent notification "Watching mic and camera" opens the app.
+- Room v2: `sensor_events` (sensor, startedAt, endedAt, interrupted, screenOn, likelyResolved, likelyPackage,
+  confidence, appInForeground) and `app_rules` (packageName, muteAlerts; used by 2.4). `AutoMigration(1 → 2)`;
+  `MigrationTest` (the one approved test) checks existing apps/grants survive and the new tables accept rows.
+  Schemas are added to debug assets only, because Robolectric reads the app's merged assets.
+- `WatchdogController` + DataStore `watchdog_enabled` (off by default). Started from the Home toggle, again in
+  `MainActivity.onStart` if Android stopped it, and by `WatchdogStartReceiver` on BOOT_COMPLETED and
+  MY_PACKAGE_REPLACED (both allowed to start a specialUse FGS from the background). Start failures from the
+  background are caught and logged.
+- Home: "Mic and camera watchdog" card with a switch. Turning it on asks for notifications on Android 13+; it runs
+  whatever the answer. If notifications are off the card says so with "Allow notifications" (opens the app's
+  notification settings); without usage access it links to the likely-app detection screen.
+- Verified on moto g34 (Android 15):
+  - Toggle on → system notification dialog → "Don't allow": service runs (`isForeground=true types=0x40000000`),
+    card shows the notifications-off hint; the button opens Settings > PrivacyPal notifications. After
+    `pm grant POST_NOTIFICATIONS` the hint is gone and the status notification shows (importance LOW, silent).
+  - Usage access off → setup hint → link opens the usage access screen; access back on → hint gone.
+  - Camera app ~7 s → row CAMERA, 6965 ms, `com.motorola.camera3` HIGH, screen on. Voice assistant → row
+    MICROPHONE, 7232 ms, Google app HIGH.
+  - Screen off 20 s: process stays at procState 4 (foreground service), not frozen. Turning the screen off with
+    the camera open ends the use (camera app closes it). No adb way to start a mic/camera use with the screen off;
+    checked with a real app in 2.4.
+  - Process death: killed PrivacyPal (`run-as kill -9`) while the camera was open → service restarted
+    (restartCount=1), the cut-off use marked interrupted, the ongoing use recorded again (MEDIUM, as the camera had
+    been on screen for ~6 s).
+  - App update (`adb install -r`) with the watchdog on → restarted by MY_PACKAGE_REPLACED. Reboot test deferred to
+    the phase-end check (needs the user's OK).
+  - Toggle off → service and notification gone; on again → back. Light, dark and landscape checked. The phone's
+    existing v1 database migrated to v2 in place (104 apps kept). Merged debug and release manifests: no
+    RECORD_AUDIO or CAMERA; FGS type specialUse. Logcat clean.
+
+### 2.4 Alerts
+- `domain/watchdog/AlertRules`: NONE for a use already over in under a second or a muted likely app; URGENT when
+  the screen was off or no app was on screen (background use); otherwise NORMAL. Unknown apps are always alerted.
+- `service/SensorAlerter` (`NotificationSensorAlerter`): posts once the likely app is known (~2.5 s after the
+  start): "Microphone in use" / "Camera in use", "Likely: <app>" (or "No app was on screen…" / "App unknown…"),
+  plus "The screen was off." when it was, with the app icon. When the use ends, an alert still on screen is
+  updated silently to "… used for N seconds" (a dismissed one stays dismissed). Channels: `watchdog_alerts`
+  (DEFAULT) and `watchdog_alerts_urgent` (HIGH). Notifications off → nothing posted, use still recorded.
+- Tapping an alert opens the Activity tab through an explicit deep link `privacypal://activity?eventId=<id>`
+  (no intent filter, so other apps can't call it); `ActivityRoute` now carries the event id for 2.5.
+- "Don't alert for <app>" action → `MuteAlertsReceiver` (not exported) stores `app_rules.muteAlerts` and removes the
+  alert. `SensorMonitors` merges the two monitors (keeps the recorder's constructor small).
+- Verified on moto g34 (Android 15):
+  - Camera ~6 s → "Camera in use / Likely: Camera" with the camera icon (channel `watchdog_alerts`), updated to
+    "Camera used for 6 seconds" after closing. Voice assistant → "Microphone in use / Likely: Google", then
+    "Microphone used for 7 seconds". Shade checked in dark and light.
+  - Tap → PrivacyPal opens on the Activity tab with `eventId=9`, alert removed, Back → Home.
+  - "Don't alert for Camera" → alert removed, `app_rules` has `com.motorola.camera3 = 1`; the next camera use was
+    recorded (row 11) with no alert. (Camera stays muted until the 2.5 app-detail switch, which will undo it.)
+  - Channels: status LOW, alerts DEFAULT, urgent HIGH. The URGENT path (screen off / background use) could not be
+    triggered: no installed app could record in the background without setting it up and granting it the mic,
+    which would change the user's phone; the user chose to skip the screen-off trigger. Logcat clean.
+
+### 2.5 Activity history and retention
+- `domain/watchdog/ActivityTimeline`: filter (sensors, screen off, likely app), group by local day (newest first),
+  likely apps for the app filter (most frequent first). `HistoryRetention`: 7 / 30 / 90 days, default 30.
+- Activity tab: timeline grouped by day ("Today", "Yesterday", full date) with filter chips Microphone, Camera,
+  Screen off and an app menu; selected chips get a check mark (not colour alone). Each row: likely app icon and
+  name (or "An app in the background" / "Unknown app" / "Checking which app…"), sensor, start time, duration
+  (rounded; "in use now" / "end not recorded"), match strength ("Likely app (strong/fair/weak match)"), and a
+  "Screen off" label with icon. Tapping a row with a likely app opens its app detail. Filters live in
+  SavedStateHandle. An alert's `eventId` is highlighted and scrolled to. Empty state says to turn on the
+  watchdog when it is off.
+- App detail: "Mic and camera history" section with the "Alert when this app uses them" switch
+  (`app_rules`, undoes the notification's mute) and the app's 10 most recent uses.
+- Settings > Mic and camera: "Keep mic and camera history for" 7 / 30 / 90 days (DataStore); changing it deletes
+  older history at once. `work/HistoryCleanupWorker` (@HiltWorker) runs daily (unique periodic work, KEEP);
+  WorkManager now starts from `PrivacyPalApplication` (Configuration.Provider + HiltWorkerFactory; default
+  initializer removed in the manifest).
+- `MainActivity` is now `singleTask` and forwards new intents to the NavController. Found on the phone: after
+  opening PrivacyPal from an alert, the launcher icon started a second MainActivity on top (fresh Home) instead
+  of returning to the restored one.
+- Verified on moto g34 (Android 15):
+  - Timeline in dark (landscape) and light (portrait); Microphone filter → only the two Google rows; Screen off
+    → "Nothing matches" + "Clear filters" restores the list; app menu lists Camera and Google; selecting Google
+    filters to it.
+  - Alert tap → Activity tab with the new camera use highlighted at the top; Back/launcher behave.
+  - Row tap → Camera's app detail: history section and switch (off from the 2.4 mute); switch on →
+    `app_rules` camera3 = 0. Back → timeline.
+  - Process death (kill -9 in background) with the Microphone filter → relaunch shows the timeline still
+    filtered.
+  - Settings: retention shows 30 by default; 7 selected and saved; today's 19 camera rows kept; set back to 30.
+    Daily cleanup job is scheduled with JobScheduler (next run ~24 h). Old-row deletion itself was not seen on
+    the phone (no history older than 7 days yet).
+  - Real finding: with auto-rotate on, Android System Intelligence (`com.google.android.as`) opens the front
+    camera for ~2 s around screen rotations. PrivacyPal recorded each as "An app in the background, no app on
+    screen" and sent an URGENT alert (channel `watchdog_alerts_urgent`); `dumpsys media.camera` shows the same
+    CONNECT/DISCONNECT times. This exercised the urgent path that adb could not trigger in 2.4.
+  - Logcat clean.
+
+### Phase 2 end
+- Merged debug and release manifests: no RECORD_AUDIO, CAMERA or INTERNET; `MonitorDebugReceiver` only in debug;
+  WatchdogService type `specialUse`.
+- Reboot test skipped (user's choice). Boot restart uses the same `WatchdogStartReceiver` path as the app-update
+  restart (MY_PACKAGE_REPLACED), which was verified; BOOT_COMPLETED itself was not seen on the phone.
+- Not checked on a device: Android 10 (only an Android 15 phone), Android 17 (target SDK; no FGS changes listed
+  for specialUse), torch filtering, a real screen-off mic/camera use.
+- Known behaviour to revisit: with auto-rotate on, Android System Intelligence opens the front camera for ~2 s
+  around rotations, so each one produces an urgent "background" alert that can't be muted per app (no package).
+- At the user's request the watchdog stays on with usage access and notifications granted; night mode restored.
+- Merged to main, tagged `v0.2.0`.

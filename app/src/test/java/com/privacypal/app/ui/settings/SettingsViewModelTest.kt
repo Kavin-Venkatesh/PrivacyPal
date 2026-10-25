@@ -20,7 +20,7 @@ class SettingsViewModelTest {
 
     @Test
     fun nullUntilSettingsLoad() = runTest {
-        val viewModel = SettingsViewModel(repository)
+        val viewModel = SettingsViewModel(repository) { false }
 
         viewModel.themeSettings.test {
             assertNull(awaitItem())
@@ -32,7 +32,7 @@ class SettingsViewModelTest {
     @Test
     fun selectingThemeModeUpdatesState() = runTest {
         repository.emit(ThemeSettings())
-        val viewModel = SettingsViewModel(repository)
+        val viewModel = SettingsViewModel(repository) { false }
 
         viewModel.themeSettings.test {
             assertEquals(ThemeMode.SYSTEM, awaitItem()?.themeMode)
@@ -46,7 +46,7 @@ class SettingsViewModelTest {
     @Test
     fun togglingDynamicColorUpdatesState() = runTest {
         repository.emit(ThemeSettings())
-        val viewModel = SettingsViewModel(repository)
+        val viewModel = SettingsViewModel(repository) { false }
 
         viewModel.themeSettings.test {
             assertEquals(true, awaitItem()?.dynamicColor)
@@ -58,7 +58,7 @@ class SettingsViewModelTest {
     @Test
     fun reselectingCurrentModeDoesNotEmit() = runTest {
         repository.emit(ThemeSettings(ThemeMode.DARK))
-        val viewModel = SettingsViewModel(repository)
+        val viewModel = SettingsViewModel(repository) { false }
 
         viewModel.themeSettings.test {
             assertEquals(ThemeMode.DARK, awaitItem()?.themeMode)
