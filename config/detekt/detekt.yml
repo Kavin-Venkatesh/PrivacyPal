@@ -20,8 +20,9 @@ complexity:
     # Exhaustive enum -> resource mappings are flat `when`s, not real branching.
     ignoreSimpleWhenEntries: true
   TooManyFunctions:
-    # A Room DAO is a list of queries by design.
+    # A Room DAO is a list of queries by design; Compose screens are split into private composables.
     ignoreAnnotated: ['Dao']
+    ignorePrivate: true
 
 style:
   MagicNumber:

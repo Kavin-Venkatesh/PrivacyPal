@@ -35,7 +35,7 @@ class NavigationTest {
         composeRule.onNodeWithText(string(R.string.home_empty_title)).assertIsDisplayed()
 
         tab(R.string.nav_apps).performClick().assertIsSelected()
-        composeRule.onNodeWithText(string(R.string.apps_empty_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.apps_show_system)).assertIsDisplayed()
 
         tab(R.string.nav_activity).performClick().assertIsSelected()
         composeRule.onNodeWithText(string(R.string.activity_empty_title)).assertIsDisplayed()

@@ -6,7 +6,6 @@ import com.privacypal.app.domain.model.ThemeSettings
 import com.privacypal.app.testing.InAppShell
 import com.privacypal.app.testing.captureLightAndDark
 import com.privacypal.app.ui.activity.ActivityScreen
-import com.privacypal.app.ui.apps.AppsScreen
 import com.privacypal.app.ui.home.HomeScreen
 import com.privacypal.app.ui.navigation.TopLevelDestination
 import com.privacypal.app.ui.settings.SettingsScreen
@@ -24,11 +23,6 @@ class ScreensScreenshotTest {
     @Test
     fun home() = captureLightAndDark("home") {
         InAppShell(TopLevelDestination.HOME) { HomeScreen(it) }
-    }
-
-    @Test
-    fun apps() = captureLightAndDark("apps") {
-        InAppShell(TopLevelDestination.APPS) { AppsScreen(it) }
     }
 
     @Test

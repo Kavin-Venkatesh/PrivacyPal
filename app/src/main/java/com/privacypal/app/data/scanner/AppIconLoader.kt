@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 /** Loads app icons on demand. Icons are never stored in the database. */
-interface AppIconLoader {
+fun interface AppIconLoader {
     /** The icon, or null if the app is gone or has no usable icon. */
     suspend fun load(packageName: String): ImageBitmap?
 }

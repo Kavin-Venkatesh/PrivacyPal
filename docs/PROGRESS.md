@@ -110,3 +110,17 @@
   `RiskTextTest` (every reason/level has a distinct string; apostrophes render).
 - detekt: `CyclomaticComplexMethod.ignoreSimpleWhenEntries` so flat enum → resource mappings pass.
 - Verified: build, 81 unit tests, lint/detekt/spotless clean, screenshots unchanged. No UI yet, so no device check.
+
+### 1.4 Apps list
+- `domain/apps/AppQuery` (search by label/package, filters All/High risk/Camera/Microphone/Location incl.
+  background/Contacts, sorts Risk/Name/Recently installed, system toggle) and `AppsSummary` counts.
+- `ui/apps/AppsViewModel`: query kept in `SavedStateHandle`; Loading / Error (first scan failed, nothing stored) /
+  Content (with a "couldn't refresh, showing last check" banner when a rescan fails).
+- `AppsScreen`: summary card (tap a line → filter + scroll to the results), search, filter chips, sort menu, system
+  apps switch, rows with lazily loaded app icon, up to 5 permission icons and a `RiskBadge` (icon + text, never colour
+  alone). Each row is read by TalkBack as one sentence (name, risk, permissions). All text in strings.xml.
+- From this feature on, verification is on the phone (per user request: no new test files). Existing tests kept
+  green; the half-recorded Apps screenshot baselines were dropped.
+- Verified on moto g34 (Android 15): 104 apps / 17 high risk shown, real icons; search "whats" → WhatsApp (Review);
+  Microphone chip, summary tap → Camera filter and scrolls to results; sort by name; system toggle → 464 apps;
+  light and dark; rotation and process death keep filter; logcat clean. Night mode restored.

@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.privacypal.app.ui.activity.ActivityScreen
-import com.privacypal.app.ui.apps.AppsScreen
+import com.privacypal.app.ui.apps.AppsRoute as AppsScreenRoute
 import com.privacypal.app.ui.home.HomeScreen
 import com.privacypal.app.ui.settings.SettingsRoute as SettingsScreenRoute
 
@@ -18,7 +18,7 @@ fun PrivacyPalNavHost(navController: NavHostController, modifier: Modifier = Mod
         modifier = modifier,
     ) {
         composable<HomeRoute> { HomeScreen() }
-        composable<AppsRoute> { AppsScreen() }
+        composable<AppsRoute> { AppsScreenRoute() }
         composable<ActivityRoute> { ActivityScreen() }
         composable<SettingsRoute> { SettingsScreenRoute() }
     }
