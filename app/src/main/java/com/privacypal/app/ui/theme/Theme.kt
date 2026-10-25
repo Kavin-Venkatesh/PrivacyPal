@@ -25,7 +25,9 @@ fun PrivacyPalTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
+
         else -> LightColorScheme
     }
     val privacyPalColors = if (darkTheme) DarkPrivacyPalColors else LightPrivacyPalColors

@@ -13,7 +13,6 @@ fun resolveDarkTheme(mode: ThemeMode, systemIsDark: Boolean): Boolean = when (mo
 }
 
 /** Dynamic colour is used only when the user enabled it and the OS supports it. */
-fun shouldUseDynamicColor(enabled: Boolean, sdkInt: Int): Boolean =
-    enabled && supportsDynamicColor(sdkInt)
+fun shouldUseDynamicColor(enabled: Boolean, sdkInt: Int): Boolean = enabled && supportsDynamicColor(sdkInt)
 
 fun supportsDynamicColor(sdkInt: Int): Boolean = sdkInt >= DYNAMIC_COLOR_MIN_SDK

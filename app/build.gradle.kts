@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.roborazzi)
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -44,12 +46,45 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            all {
+                // Robolectric native graphics reaches into FileDescriptor internals on JDK 17+.
+                it.jvmArgs(
+                    "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                )
+                it.maxHeapSize = "2g"
+            }
         }
+    }
+
+    lint {
+        abortOnError = true
+        warningsAsErrors = false
+        checkDependencies = true
     }
 }
 
 ksp {
     arg("room.generateKotlin", "true")
+}
+
+roborazzi {
+    outputDir.set(file("src/test/screenshots"))
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    source.setFrom("src/main/java", "src/test/java", "src/androidTest/java")
+}
+
+// detekt 1.23.8 embeds the Kotlin 2.0 compiler; keep the project's newer Kotlin out of its classpath.
+configurations.matching { it.name == "detekt" }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion(libs.versions.detektKotlin.get())
+        }
+    }
 }
 
 dependencies {

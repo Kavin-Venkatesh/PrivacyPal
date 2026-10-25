@@ -22,7 +22,7 @@
     <!-- Activity -->
     <string name="activity_title">Activity</string>
     <string name="activity_empty_title">Nothing recorded yet</string>
-    <string name="activity_empty_message">When apps use your microphone, camera or contact trackers, it will show up here.</string>
+    <string name="activity_empty_message">Apps using your microphone or camera, and connections to trackers, will show up here.</string>
     <string name="activity_empty_icon">Timeline</string>
 
     <!-- Settings -->

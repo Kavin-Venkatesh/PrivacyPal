@@ -30,25 +30,10 @@ fun PrivacyPalApp(navController: NavHostController = rememberNavController()) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                TopLevelDestination.entries.forEach { destination ->
-                    val selected = currentDestination.isOn(destination)
-                    val label = stringResource(destination.labelRes)
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { navController.navigateToTopLevel(destination) },
-                        icon = {
-                            Icon(
-                                imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                contentDescription = label,
-                            )
-                        },
-                        // NavigationBarItem hides the icon description when a label is present,
-                        // so the label is what TalkBack reads; keep its semantics.
-                        label = { Text(text = label) },
-                    )
-                }
-            }
+            PrivacyPalNavigationBar(
+                isSelected = { currentDestination.isOn(it) },
+                onSelect = { navController.navigateToTopLevel(it) },
+            )
         },
     ) { innerPadding ->
         PrivacyPalNavHost(
@@ -58,6 +43,33 @@ fun PrivacyPalApp(navController: NavHostController = rememberNavController()) {
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
         )
+    }
+}
+
+@Composable
+fun PrivacyPalNavigationBar(
+    isSelected: (TopLevelDestination) -> Boolean,
+    onSelect: (TopLevelDestination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NavigationBar(modifier = modifier) {
+        TopLevelDestination.entries.forEach { destination ->
+            val selected = isSelected(destination)
+            val label = stringResource(destination.labelRes)
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onSelect(destination) },
+                icon = {
+                    Icon(
+                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                        contentDescription = label,
+                    )
+                },
+                // NavigationBarItem hides the icon description when a label is present,
+                // so the label is what TalkBack reads; keep its semantics.
+                label = { Text(text = label) },
+            )
+        }
     }
 }
 

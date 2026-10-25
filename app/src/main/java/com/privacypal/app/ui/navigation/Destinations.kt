@@ -12,8 +12,8 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.privacypal.app.R
-import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
+import kotlinx.serialization.Serializable
 
 @Serializable
 data object HomeRoute

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import app.cash.turbine.test
 import com.privacypal.app.domain.model.ThemeMode
 import com.privacypal.app.domain.model.ThemeSettings
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -24,7 +25,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class DataStoreSettingsRepositoryTest {
 

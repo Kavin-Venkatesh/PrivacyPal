@@ -44,3 +44,15 @@
 - Device (moto g34, Android 15): all four tabs in light and dark; in-app theme overrides the system both ways
   (status bar icons follow); brand scheme with dynamic colour off; rotation and process death keep the tab;
   Back behaviour correct; logcat clean. Found and fixed: tab labels were hidden from TalkBack.
+
+### 0.5 Test and quality toolchain
+- Roborazzi: `captureLightAndDark` helper + `InAppShell` (screen inside the real nav bar); `ScreensScreenshotTest`
+  records Home, Apps, Activity, Settings and Settings-without-dynamic-colour (Android 10/11), each light and dark:
+  10 baselines in `app/src/test/screenshots/`. Extracted `PrivacyPalNavigationBar` so it renders without Hilt.
+- Reviewed every PNG: no clipping/overlap, readable contrast, consistent spacing. Fixed ambiguous Activity copy
+  ("contact trackers") and re-recorded.
+- `NavigationTest` (Compose UI, androidTest): taps every tab and asserts its screen; Back returns Home.
+- Spotless + ktlint 1.8.0 (`.editorconfig`, Android Studio style), detekt 1.23.8 (`config/detekt/detekt.yml`,
+  Compose-friendly overrides), lint `abortOnError`. All findings fixed. `docs/TESTING.md` explains the commands.
+- Verified: assembleDebug, testDebugUnitTest (27), verifyRoborazziDebug, lintDebug (no issues), spotlessCheck,
+  detekt all pass; connectedDebugAndroidTest 2/2 on moto g34 (Android 15).

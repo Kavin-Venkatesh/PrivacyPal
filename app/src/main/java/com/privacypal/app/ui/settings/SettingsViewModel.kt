@@ -6,16 +6,14 @@ import com.privacypal.app.data.settings.SettingsRepository
 import com.privacypal.app.domain.model.ThemeMode
 import com.privacypal.app.domain.model.ThemeSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+class SettingsViewModel @Inject constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
 
     /** Null until the stored settings have been read. */
     val themeSettings: StateFlow<ThemeSettings?> = settingsRepository.themeSettings

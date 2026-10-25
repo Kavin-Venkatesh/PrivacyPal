@@ -5,16 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.privacypal.app.data.settings.SettingsRepository
 import com.privacypal.app.domain.model.ThemeSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
-    settingsRepository: SettingsRepository,
-) : ViewModel() {
+class MainViewModel @Inject constructor(settingsRepository: SettingsRepository) : ViewModel() {
 
     val uiState: StateFlow<MainUiState> = settingsRepository.themeSettings
         .map<ThemeSettings, MainUiState> { MainUiState.Ready(it) }
