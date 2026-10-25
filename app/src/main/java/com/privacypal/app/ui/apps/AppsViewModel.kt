@@ -1,5 +1,8 @@
 package com.privacypal.app.ui.apps
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,7 +75,15 @@ class AppsViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), AppsUiState.Loading)
 
+    /**
+     * The search box text. Compose state, updated synchronously, so fast typing never loses characters;
+     * the (asynchronous) [query] follows it.
+     */
+    var searchText by mutableStateOf(savedStateHandle.get<String>(KEY_SEARCH) ?: "")
+        private set
+
     fun onSearchChange(search: String) {
+        searchText = search
         savedStateHandle[KEY_SEARCH] = search
     }
 
@@ -89,7 +100,7 @@ class AppsViewModel @Inject constructor(
     }
 
     fun clearFilters() {
-        savedStateHandle[KEY_SEARCH] = ""
+        onSearchChange("")
         savedStateHandle[KEY_FILTER] = AppFilter.ALL.name
     }
 

@@ -18,8 +18,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object HomeRoute
 
+/** Nested graph for the Apps tab: the list and its detail screen. */
+@Serializable
+data object AppsGraph
+
 @Serializable
 data object AppsRoute
+
+@Serializable
+data class AppDetailRoute(val packageName: String)
 
 @Serializable
 data object ActivityRoute
@@ -35,7 +42,7 @@ enum class TopLevelDestination(
     @StringRes val labelRes: Int,
 ) {
     HOME(HomeRoute, HomeRoute::class, Icons.Filled.Home, Icons.Outlined.Home, R.string.nav_home),
-    APPS(AppsRoute, AppsRoute::class, Icons.Filled.Apps, Icons.Outlined.Apps, R.string.nav_apps),
+    APPS(AppsGraph, AppsGraph::class, Icons.Filled.Apps, Icons.Outlined.Apps, R.string.nav_apps),
     ACTIVITY(
         ActivityRoute,
         ActivityRoute::class,

@@ -97,7 +97,7 @@ fun AppsRoute(
     val query by viewModel.query.collectAsStateWithLifecycle()
     AppsScreen(
         state = state,
-        query = query,
+        query = query.copy(search = viewModel.searchText),
         actions = AppsActions(
             onSearchChange = viewModel::onSearchChange,
             onFilterChange = viewModel::onFilterChange,

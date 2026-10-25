@@ -71,6 +71,18 @@
     <string name="apps_retry">Try again</string>
     <string name="apps_refresh_failed">Couldn\'t refresh the list. Showing the last check.</string>
 
+    <!-- App detail -->
+    <string name="detail_back">Back</string>
+    <string name="detail_installed">Installed %1$s</string>
+    <string name="detail_manage_permissions">Manage permissions</string>
+    <string name="detail_manage_permissions_hint">Opens Android settings for this app. Come back here to see your changes.</string>
+    <string name="detail_section_granted">What this app can access</string>
+    <string name="detail_no_permissions">This app has no sensitive permissions.</string>
+    <string name="detail_section_denied">Asked for, but not allowed</string>
+    <string name="detail_not_installed_title">App not installed</string>
+    <string name="detail_not_installed_message">This app is no longer on your phone.</string>
+    <string name="detail_not_installed_icon">Removed app</string>
+
     <!-- Permission groups -->
     <string name="permission_group_camera">Camera</string>
     <string name="permission_group_microphone">Microphone</string>

@@ -124,3 +124,18 @@
 - Verified on moto g34 (Android 15): 104 apps / 17 high risk shown, real icons; search "whats" → WhatsApp (Review);
   Microphone chip, summary tap → Camera filter and scrolls to results; sort by name; system toggle → 464 apps;
   light and dark; rotation and process death keep filter; logcat clean. Night mode restored.
+
+### 1.5 App detail
+- Navigation: nested `AppsGraph` (list + `AppDetailRoute(packageName)`), so the Apps tab stays selected on detail.
+- `ui/apps/detail`: `AppDetailViewModel` (package from the route; Loading / NotInstalled / Content),
+  `AppDetailScreen` (icon, name, package, locale-formatted install date, risk badge; each granted group with icon,
+  badge and plain-language reason; "Asked for, but not allowed" list), `ManagePermissionsIntent`
+  (`ACTION_APPLICATION_DETAILS_SETTINGS` with a `package:` URI, falls back to Settings). The app is rescanned on
+  every resume, because permission changes in Settings send no broadcast.
+- Fixed: the search box dropped characters when typing fast (its text went through an async StateFlow); the text now
+  lives in synchronous Compose state in the ViewModel.
+- Verified on moto g34 (Android 15), no new test files: WhatsApp detail in light and dark; Manage permissions opens
+  the system App info page for WhatsApp, Back returns; `pm revoke` Adobe Scan CAMERA → after returning, Camera moves
+  to "Asked for, but not allowed" and the badge drops to Low; `pm grant` → back to Review (restored, dumpsys
+  granted=true); uninstalling an app while its detail is open shows "App not installed" and Back works; rotation
+  keeps the screen; typing "adobescan" via adb arrives intact; no PrivacyPal errors in logcat. Night mode restored.
