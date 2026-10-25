@@ -16,6 +16,9 @@ complexity:
     ignoreAnnotated: ['Composable']
   LongMethod:
     ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    # Exhaustive enum -> resource mappings are flat `when`s, not real branching.
+    ignoreSimpleWhenEntries: true
   TooManyFunctions:
     # A Room DAO is a list of queries by design.
     ignoreAnnotated: ['Dao']

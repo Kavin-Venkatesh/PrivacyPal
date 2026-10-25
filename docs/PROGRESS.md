@@ -98,3 +98,15 @@
   464 apps (360 system, 104 visible), 1420 grant rows, PrivacyPal itself excluded. Stored grants match
   `dumpsys package` exactly for WhatsApp (16), Truecaller (12) and Subway Surfers (0). Installing a package while
   the app was open added its row; uninstalling removed it. No errors from PrivacyPal in logcat.
+
+### 1.3 Risk rules
+- `domain/risk`: `RiskLevel` (NONE < LOW < MEDIUM < HIGH), `RiskReason` (17 plain-language reasons, mapped to
+  strings in `ui/risk/RiskText.kt`), `RiskRules` (category overrides as a data list + an exhaustive per-group
+  default), `assessApp()` → `AppRisk` (worst granted group, grants worst first, `flaggedCount` = MEDIUM/HIGH grants).
+- Apps declaring no category get MEDIUM with "This app doesn't say what it's for, so check whether it really needs
+  this." Background location, SMS and call logs stay HIGH regardless (MEDIUM only for Maps / Social).
+- Tests: `RiskRulesTest` checks all 140 group × category combinations against an independent copy of the approved
+  table, plus reasons; `AppRiskTest` (no permissions, denied ignored, worst-of aggregation, ordering, counts);
+  `RiskTextTest` (every reason/level has a distinct string; apostrophes render).
+- detekt: `CyclomaticComplexMethod.ignoreSimpleWhenEntries` so flat enum → resource mappings pass.
+- Verified: build, 81 unit tests, lint/detekt/spotless clean, screenshots unchanged. No UI yet, so no device check.

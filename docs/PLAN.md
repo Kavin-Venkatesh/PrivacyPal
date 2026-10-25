@@ -21,3 +21,24 @@ was verified is logged in `docs/PROGRESS.md`.
   (`PermissionGroup` name, indexed), `granted`. `packageName` → `apps.packageName`, ON DELETE CASCADE.
 - Only tracked (dangerous/runtime) permissions are stored; icons are never stored. Exported schemas live in
   `app/schemas/`; any schema change needs a version bump and a migration test.
+
+## Risk rules (Phase 1)
+
+Only granted permissions count. An app's risk is the worst rating among its granted groups.
+
+| Group | LOW (expected) | HIGH (mismatch) | Otherwise |
+|---|---|---|---|
+| Microphone | Social, Video, Audio | Game, News, Maps, Image, Productivity | MEDIUM |
+| Camera | Social, Video, Image | Game, News, Audio, Maps | MEDIUM |
+| Contacts | Social | Game, News, Productivity, Image, Audio, Video, Maps | MEDIUM |
+| Location | Maps | Game, Audio | MEDIUM |
+| Location (all the time) | – | – (Maps = MEDIUM) | HIGH |
+| SMS, Call logs | – | – (Social = MEDIUM) | HIGH |
+| Phone | Social | Game, News | MEDIUM |
+| Body sensors | – | Game, News, Social | MEDIUM |
+| Physical activity | – | Game | MEDIUM |
+| Calendar | Productivity | Game | MEDIUM |
+| Nearby devices, Media/files, Notifications | all | – | LOW |
+
+Apps with no declared category (most apps) get the "Otherwise" level; when that is MEDIUM the reason says the app
+doesn't declare what it's for.

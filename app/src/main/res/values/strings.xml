@@ -41,4 +41,27 @@
     <string name="settings_on_device_title">Everything stays on your phone</string>
     <string name="settings_on_device_summary">No accounts, no servers, no analytics.</string>
     <string name="settings_on_device_icon">Lock</string>
+
+    <!-- Risk -->
+    <string name="risk_level_none">No risk</string>
+    <string name="risk_level_low">Low</string>
+    <string name="risk_level_medium">Review</string>
+    <string name="risk_level_high">High risk</string>
+    <string name="risk_reason_expected">Apps like this one usually need this.</string>
+    <string name="risk_reason_undeclared_purpose">This app doesn\'t say what it\'s for, so check whether it really needs this.</string>
+    <string name="risk_reason_sensitive_check">This is sensitive. Check whether the app really needs it.</string>
+    <string name="risk_reason_microphone_unexpected">Apps like this one rarely need to record audio.</string>
+    <string name="risk_reason_camera_unexpected">Apps like this one rarely need to take photos or videos.</string>
+    <string name="risk_reason_contacts_unexpected">Apps like this one rarely need your contacts.</string>
+    <string name="risk_reason_location_unexpected">Apps like this one rarely need to know where you are.</string>
+    <string name="risk_reason_phone_unexpected">Apps like this one rarely need to make or manage phone calls.</string>
+    <string name="risk_reason_body_sensors_unexpected">Apps like this one rarely need your heart rate or other body data.</string>
+    <string name="risk_reason_physical_activity_unexpected">Apps like this one rarely need to track your steps and movement.</string>
+    <string name="risk_reason_calendar_unexpected">Apps like this one rarely need your calendar.</string>
+    <string name="risk_reason_background_location">This app can see where you are even when you\'re not using it.</string>
+    <string name="risk_reason_reads_messages">This app can read your text messages, including login codes.</string>
+    <string name="risk_reason_reads_call_history">This app can see who you call and when.</string>
+    <string name="risk_reason_media_access">This app can open photos, videos, music or files on your phone.</string>
+    <string name="risk_reason_nearby_devices">This app can find and connect to nearby devices, like headphones.</string>
+    <string name="risk_reason_notifications">This app can send you notifications.</string>
 </resources>
