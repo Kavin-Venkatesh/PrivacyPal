@@ -24,6 +24,19 @@
     <string name="home_riskiest_title">Check these first</string>
     <string name="home_no_risky_apps">No apps need a closer look right now.</string>
     <string name="home_see_all_apps">See all apps</string>
+    <string name="home_watchdog_title">Mic and camera watchdog</string>
+    <string name="home_watchdog_switch">Watch mic and camera</string>
+    <string name="home_watchdog_on">PrivacyPal notes every time an app uses the microphone or camera. It never records anything itself.</string>
+    <string name="home_watchdog_off">Turn on to see when apps use the microphone or camera, even with the screen off.</string>
+    <string name="home_watchdog_notifications_off">Notifications are off for PrivacyPal, so you won\'t see alerts.</string>
+    <string name="home_watchdog_allow_notifications">Allow notifications</string>
+    <string name="home_watchdog_usage_access">To see which app it probably was, turn on likely-app detection.</string>
+    <string name="home_watchdog_set_up_usage">Set up likely-app detection</string>
+
+    <string name="watchdog_channel_status">Watchdog status</string>
+    <string name="watchdog_channel_status_description">Shown while PrivacyPal watches the microphone and camera.</string>
+    <string name="watchdog_status_title">Watching mic and camera</string>
+    <string name="watchdog_status_text">PrivacyPal notes when an app uses them. Nothing is recorded.</string>
 
     <!-- Apps -->
     <string name="apps_title">Apps</string>

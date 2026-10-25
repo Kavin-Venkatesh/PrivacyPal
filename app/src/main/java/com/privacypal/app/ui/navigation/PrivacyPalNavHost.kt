@@ -24,6 +24,7 @@ fun PrivacyPalNavHost(navController: NavHostController, modifier: Modifier = Mod
             HomeScreenRoute(
                 onAppClick = { navController.navigate(AppDetailRoute(it)) },
                 onSeeAllApps = { navController.navigateToTopLevel(TopLevelDestination.APPS) },
+                onSetUpUsageAccess = { navController.navigate(UsageAccessRoute) },
             )
         }
         navigation<AppsGraph>(startDestination = AppsRoute) {

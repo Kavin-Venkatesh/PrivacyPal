@@ -19,6 +19,16 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!--
+        Mic and camera watchdog: a foreground service keeps PrivacyPal awake to receive the system's
+        "microphone/camera in use" callbacks. specialUse because it never records or opens a camera.
+        POST_NOTIFICATIONS shows its status and alerts; RECEIVE_BOOT_COMPLETED restarts it after a reboot.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".PrivacyPalApplication"
         android:allowBackup="false"
@@ -39,6 +49,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.WatchdogService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Privacy monitor: listens to system callbacks that report when the microphone or camera starts and stops being used by any app, and notifies the user. Does not record audio or use the camera." />
+        </service>
+
+        <!-- Exported so the system can deliver boot and app-update broadcasts; checks the action. -->
+        <receiver
+            android:name=".service.WatchdogStartReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

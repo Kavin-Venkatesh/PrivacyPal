@@ -199,3 +199,40 @@ test (user decision).
   `com.google.android.googlequicksearchbox` HIGH. Found: the first try gave "nothing on screen" because the app's
   RESUMED event is logged after the mic starts; fixed with the settle delay. With access off → unavailable.
   Logcat clean. Usage access left on for the rest of Phase 2 testing (restored at phase end).
+
+### 2.3 Watchdog service and storage
+- `service/WatchdogService`: Hilt foreground service, type `specialUse` (subtype property in the manifest), START_STICKY.
+  Runs `WatchdogRecorder`, which merges both monitors into `SensorSessionTracker` and writes each use to Room: a row
+  at the start (with screen on/off from `PowerManager.isInteractive`), the likely app a few seconds later in its own
+  coroutine (the resolver waits for usage events), the end time at the stop. A torch-cancelled camera use is
+  deleted. On start, uses left open by an earlier run are marked `interrupted` (end unknown).
+- Low-importance `watchdog_status` channel; ongoing silent notification "Watching mic and camera" opens the app.
+- Room v2: `sensor_events` (sensor, startedAt, endedAt, interrupted, screenOn, likelyResolved, likelyPackage,
+  confidence, appInForeground) and `app_rules` (packageName, muteAlerts; used by 2.4). `AutoMigration(1 → 2)`;
+  `MigrationTest` (the one approved test) checks existing apps/grants survive and the new tables accept rows.
+  Schemas are added to debug assets only, because Robolectric reads the app's merged assets.
+- `WatchdogController` + DataStore `watchdog_enabled` (off by default). Started from the Home toggle, again in
+  `MainActivity.onStart` if Android stopped it, and by `WatchdogStartReceiver` on BOOT_COMPLETED and
+  MY_PACKAGE_REPLACED (both allowed to start a specialUse FGS from the background). Start failures from the
+  background are caught and logged.
+- Home: "Mic and camera watchdog" card with a switch. Turning it on asks for notifications on Android 13+; it runs
+  whatever the answer. If notifications are off the card says so with "Allow notifications" (opens the app's
+  notification settings); without usage access it links to the likely-app detection screen.
+- Verified on moto g34 (Android 15):
+  - Toggle on → system notification dialog → "Don't allow": service runs (`isForeground=true types=0x40000000`),
+    card shows the notifications-off hint; the button opens Settings > PrivacyPal notifications. After
+    `pm grant POST_NOTIFICATIONS` the hint is gone and the status notification shows (importance LOW, silent).
+  - Usage access off → setup hint → link opens the usage access screen; access back on → hint gone.
+  - Camera app ~7 s → row CAMERA, 6965 ms, `com.motorola.camera3` HIGH, screen on. Voice assistant → row
+    MICROPHONE, 7232 ms, Google app HIGH.
+  - Screen off 20 s: process stays at procState 4 (foreground service), not frozen. Turning the screen off with
+    the camera open ends the use (camera app closes it). No adb way to start a mic/camera use with the screen off;
+    checked with a real app in 2.4.
+  - Process death: killed PrivacyPal (`run-as kill -9`) while the camera was open → service restarted
+    (restartCount=1), the cut-off use marked interrupted, the ongoing use recorded again (MEDIUM, as the camera had
+    been on screen for ~6 s).
+  - App update (`adb install -r`) with the watchdog on → restarted by MY_PACKAGE_REPLACED. Reboot test deferred to
+    the phase-end check (needs the user's OK).
+  - Toggle off → service and notification gone; on again → back. Light, dark and landscape checked. The phone's
+    existing v1 database migrated to v2 in place (104 apps kept). Merged debug and release manifests: no
+    RECORD_AUDIO or CAMERA; FGS type specialUse. Logcat clean.

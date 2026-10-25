@@ -15,10 +15,12 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.privacypal.app.data.scanner.AppIconLoader
 import com.privacypal.app.domain.model.ThemeSettings
 import com.privacypal.app.domain.theme.resolveDarkTheme
 import com.privacypal.app.domain.theme.shouldUseDynamicColor
+import com.privacypal.app.service.WatchdogController
 import com.privacypal.app.ui.MainUiState
 import com.privacypal.app.ui.MainViewModel
 import com.privacypal.app.ui.PrivacyPalApp
@@ -26,6 +28,7 @@ import com.privacypal.app.ui.components.LocalAppIconLoader
 import com.privacypal.app.ui.theme.PrivacyPalTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -34,6 +37,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var appIconLoader: AppIconLoader
+
+    @Inject
+    lateinit var watchdogController: WatchdogController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -56,6 +62,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Brings the watchdog back if Android stopped it; allowed while PrivacyPal is visible.
+        lifecycleScope.launch { watchdogController.startIfEnabled() }
     }
 
     /**
