@@ -7,6 +7,7 @@ import com.privacypal.app.testing.InAppShell
 import com.privacypal.app.testing.captureLightAndDark
 import com.privacypal.app.ui.activity.ActivityScreen
 import com.privacypal.app.ui.home.HomeScreen
+import com.privacypal.app.ui.home.HomeUiState
 import com.privacypal.app.ui.navigation.TopLevelDestination
 import com.privacypal.app.ui.settings.SettingsScreen
 import org.junit.Test
@@ -22,7 +23,7 @@ class ScreensScreenshotTest {
 
     @Test
     fun home() = captureLightAndDark("home") {
-        InAppShell(TopLevelDestination.HOME) { HomeScreen(it) }
+        InAppShell(TopLevelDestination.HOME) { HomeScreen(HomeUiState.Empty, it) }
     }
 
     @Test

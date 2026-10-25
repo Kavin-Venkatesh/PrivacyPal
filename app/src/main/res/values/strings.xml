@@ -12,6 +12,18 @@
     <string name="home_empty_title">No privacy score yet</string>
     <string name="home_empty_message">Your privacy score will appear here once PrivacyPal has checked the apps on this phone.</string>
     <string name="home_empty_icon">Shield</string>
+    <string name="home_permissions_title">Permission check</string>
+    <plurals name="home_stat_checked">
+        <item quantity="one">app checked</item>
+        <item quantity="other">apps checked</item>
+    </plurals>
+    <plurals name="home_stat_high_risk">
+        <item quantity="one">high-risk app</item>
+        <item quantity="other">high-risk apps</item>
+    </plurals>
+    <string name="home_riskiest_title">Check these first</string>
+    <string name="home_no_risky_apps">No apps need a closer look right now.</string>
+    <string name="home_see_all_apps">See all apps</string>
 
     <!-- Apps -->
     <string name="apps_title">Apps</string>

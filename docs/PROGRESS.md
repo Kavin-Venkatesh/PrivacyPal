@@ -139,3 +139,14 @@
   to "Asked for, but not allowed" and the badge drops to Low; `pm grant` → back to Review (restored, dumpsys
   granted=true); uninstalling an app while its detail is open shows "App not installed" and Back works; rotation
   keeps the screen; typing "adobescan" via adb arrives intact; no PrivacyPal errors in logcat. Night mode restored.
+
+### 1.6 Home summary
+- `ui/home/HomeViewModel` + `HomeScreen`: "Permission check" card with apps checked, high-risk count, up to 3
+  riskiest apps (MEDIUM/HIGH, worst first; tap → app detail, Back → Home) and "See all apps" (→ Apps tab).
+  Loading state (with title) during the first scan; the original empty state if nothing has been checked.
+- `navigateToTopLevel` moved to `ui/navigation/TopLevelNavigation.kt` so Home can switch tabs.
+- Existing tests adjusted only: Home screenshot uses the Empty state (baseline unchanged); `NavigationTest` waits
+  for Home/Apps content, which now loads from the database asynchronously.
+- Verified on moto g34 (Android 15): 104 apps checked / 17 high-risk, top 3 Google, Phone, GPay; tap opens detail,
+  Back returns Home; See all apps opens the Apps tab; light, dark and landscape; logcat clean;
+  connectedDebugAndroidTest 4/4. Night mode restored.
