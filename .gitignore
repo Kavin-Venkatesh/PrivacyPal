@@ -1,0 +1,27 @@
+# Gradle / build
+.gradle/
+build/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.navigation/
+
+# Local config and secrets (never commit)
+local.properties
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+google-services.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
