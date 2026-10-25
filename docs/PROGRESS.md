@@ -12,3 +12,12 @@
 - `PrivacyPalApplication` (`@HiltAndroidApp`), `MainActivity` (`@AndroidEntryPoint`) with splash screen.
 - Manifest declares no permissions; cloud backup and device transfer are disabled (data stays on device).
 - Verified: `assembleDebug` succeeds; installed and launched on moto g34 5G (Android 15); logcat clean.
+
+### 0.2 Light and dark theme
+- `ui/theme/`: `Color.kt` (full brand light/dark schemes, every M3 role incl. surface containers),
+  `PrivacyPalColors.kt` (risk high/medium/low + on-colours via `LocalPrivacyPalColors`,
+  `MaterialTheme.privacyPalColors`), `Type.kt`, `Shape.kt`, `Theme.kt` (dynamic colour on 12+, brand fallback).
+- `MainActivity`: edge-to-edge, re-applied when the resolved dark mode changes so bar icons follow the app theme.
+- Tests: `ContrastTest` checks >= 4.5:1 (WCAG) for risk/onRisk, risk/surface and key brand text pairs, both themes.
+- Verified: build, unit tests (5/5), lint clean; on device in system dark and light: status bar icons readable,
+  text contrast fine, logcat clean. System night mode restored to its original value (yes).
