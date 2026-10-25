@@ -31,8 +31,15 @@ data class AppDetailRoute(val packageName: String)
 @Serializable
 data object ActivityRoute
 
+/** Nested graph for the Settings tab: settings and the usage access explanation. */
+@Serializable
+data object SettingsGraph
+
 @Serializable
 data object SettingsRoute
+
+@Serializable
+data object UsageAccessRoute
 
 enum class TopLevelDestination(
     val route: Any,
@@ -51,8 +58,8 @@ enum class TopLevelDestination(
         R.string.nav_activity,
     ),
     SETTINGS(
-        SettingsRoute,
-        SettingsRoute::class,
+        SettingsGraph,
+        SettingsGraph::class,
         Icons.Filled.Settings,
         Icons.Outlined.Settings,
         R.string.nav_settings,

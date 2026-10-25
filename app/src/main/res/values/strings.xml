@@ -134,6 +134,19 @@
     <string name="settings_on_device_summary">No accounts, no servers, no analytics.</string>
     <string name="settings_on_device_icon">Lock</string>
 
+    <!-- Usage access (likely app) -->
+    <string name="usage_access_title">Find out which app it likely is</string>
+    <string name="usage_access_limit">Android tells PrivacyPal when the microphone or camera is in use, but not which app is using it.</string>
+    <string name="usage_access_how">With usage access, PrivacyPal looks at which app was on your screen when the microphone or camera started. It shows that app as the likely one, never as certain.</string>
+    <string name="usage_access_without">Without usage access, PrivacyPal still records when the microphone or camera was used, as \"Unknown app\".</string>
+    <string name="usage_access_private">Usage information stays on your phone.</string>
+    <string name="usage_access_status_on">Usage access is on</string>
+    <string name="usage_access_status_off">Usage access is off</string>
+    <string name="usage_access_open_settings">Open usage access settings</string>
+    <string name="usage_access_manage">Manage usage access</string>
+    <string name="settings_section_watchdog">Mic and camera</string>
+    <string name="settings_usage_access">Likely-app detection</string>
+
     <!-- Risk -->
     <string name="risk_level_none">No risk</string>
     <string name="risk_level_low">Low</string>

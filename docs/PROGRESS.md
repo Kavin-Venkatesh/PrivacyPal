@@ -181,3 +181,21 @@ test (user decision).
   PrivacyPal is cached, Android's app freezer stops callbacks (a recording was missed until the process was
   unfrozen with `am unfreeze`), which is why 2.3 runs the monitors in a foreground service. Merged debug and release
   manifests contain no RECORD_AUDIO or CAMERA. Torch filtering not checked on device (no adb way to toggle the torch).
+
+### 2.2 Likely-app detection
+- `domain/watchdog/LikelyApp`: `LikelyAppRules.resolve` picks the app on screen when a sensor started from usage
+  events (events up to 2 s after the start count). Confidence HIGH (came on screen within 2 s), MEDIUM (≤ 60 s),
+  LOW (longer). Home screens, System UI and PrivacyPal are never the likely app (→ "nothing on screen", i.e. the
+  sensor was used in the background). Always labelled "likely", never certain.
+- `data/watchdog/ForegroundAppResolver`: `AppOpsUsageAccessChecker` (GET_USAGE_STATS app op) and
+  `UsageStatsForegroundAppResolver` (`UsageStatsManager.queryEvents`, waits until 2.5 s after the start because
+  usage events are written with a delay). Without usage access it returns "unavailable" and nothing is queried.
+- Usage Access onboarding: Settings → "Mic and camera" → "Likely-app detection" opens a screen explaining the
+  limit, what is read, what happens without it and that nothing leaves the phone, with a status card and a button
+  that opens PrivacyPal's own toggle in system Settings. Status refreshes on resume.
+- `PACKAGE_USAGE_STATS` declared (special access the user grants in Settings; not a runtime permission).
+- Verified on moto g34: the button opens Settings > Usage access on PrivacyPal's toggle; status changes off → on
+  after granting; screen checked in light and dark. Camera app → `com.motorola.camera3` HIGH; voice assistant →
+  `com.google.android.googlequicksearchbox` HIGH. Found: the first try gave "nothing on screen" because the app's
+  RESUMED event is logged after the mic starts; fixed with the settle delay. With access off → unavailable.
+  Logcat clean. Usage access left on for the rest of Phase 2 testing (restored at phase end).

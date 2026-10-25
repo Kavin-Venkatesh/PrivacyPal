@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.privacypal.app.data.watchdog.CameraMonitor
+import com.privacypal.app.data.watchdog.ForegroundAppResolver
 import com.privacypal.app.data.watchdog.MicMonitor
 import com.privacypal.app.di.ApplicationScope
 import com.privacypal.app.domain.watchdog.SensorSessionTracker
@@ -32,6 +33,8 @@ class MonitorDebugReceiver : BroadcastReceiver() {
 
         fun cameraMonitor(): CameraMonitor
 
+        fun resolver(): ForegroundAppResolver
+
         @ApplicationScope
         fun scope(): CoroutineScope
     }
@@ -51,6 +54,8 @@ class MonitorDebugReceiver : BroadcastReceiver() {
                 Log.i(TAG, "event $event")
                 tracker.onEvent(event)?.let { change ->
                     val session = change.session
+                    val likely = monitors.resolver().likelyAppAt(session.startedAtMs)
+                    Log.i(TAG, "likely app $likely")
                     Log.i(
                         TAG,
                         "session ${change::class.simpleName} $session duration=${session.durationMs} short=${session.isShort}",

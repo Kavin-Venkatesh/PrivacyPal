@@ -11,6 +11,7 @@ import com.privacypal.app.ui.apps.AppsRoute as AppsScreenRoute
 import com.privacypal.app.ui.apps.detail.AppDetailRoute as AppDetailScreenRoute
 import com.privacypal.app.ui.home.HomeRoute as HomeScreenRoute
 import com.privacypal.app.ui.settings.SettingsRoute as SettingsScreenRoute
+import com.privacypal.app.ui.watchdog.UsageAccessRoute as UsageAccessScreenRoute
 
 @Composable
 fun PrivacyPalNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -34,6 +35,11 @@ fun PrivacyPalNavHost(navController: NavHostController, modifier: Modifier = Mod
             }
         }
         composable<ActivityRoute> { ActivityScreen() }
-        composable<SettingsRoute> { SettingsScreenRoute() }
+        navigation<SettingsGraph>(startDestination = SettingsRoute) {
+            composable<SettingsRoute> {
+                SettingsScreenRoute(onUsageAccessClick = { navController.navigate(UsageAccessRoute) })
+            }
+            composable<UsageAccessRoute> { UsageAccessScreenRoute(onBack = { navController.popBackStack() }) }
+        }
     }
 }

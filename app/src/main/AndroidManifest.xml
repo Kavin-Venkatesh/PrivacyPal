@@ -11,6 +11,14 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!--
+        Usage access (granted by the user in Settings, never by a dialog): shows which app was on screen
+        when the microphone or camera started, so the watchdog can name the LIKELY app. Stays on device.
+    -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
     <application
         android:name=".PrivacyPalApplication"
         android:allowBackup="false"

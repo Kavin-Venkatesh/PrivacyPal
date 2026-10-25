@@ -2,6 +2,7 @@ package com.privacypal.app.ui.settings
 
 import android.os.Build
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.privacypal.app.BuildConfig
 import com.privacypal.app.R
@@ -43,14 +45,21 @@ import com.privacypal.app.domain.theme.supportsDynamicColor
 import com.privacypal.app.ui.components.ScreenTitle
 
 @Composable
-fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsRoute(onUsageAccessClick: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
+    val usageAccessGranted by viewModel.usageAccessGranted.collectAsStateWithLifecycle()
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshUsageAccess()
+        onPauseOrDispose {}
+    }
     SettingsScreen(
         themeSettings = themeSettings,
         showDynamicColor = supportsDynamicColor(Build.VERSION.SDK_INT),
         versionName = BuildConfig.VERSION_NAME,
         onThemeModeChange = viewModel::setThemeMode,
         onDynamicColorChange = viewModel::setDynamicColor,
+        usageAccessGranted = usageAccessGranted,
+        onUsageAccessClick = onUsageAccessClick,
     )
 }
 
@@ -62,6 +71,9 @@ fun SettingsScreen(
     onThemeModeChange: (ThemeMode) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    /** Null hides the mic and camera section. */
+    usageAccessGranted: Boolean? = null,
+    onUsageAccessClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -79,6 +91,11 @@ fun SettingsScreen(
             if (showDynamicColor) {
                 DynamicColorRow(checked = themeSettings.dynamicColor, onCheckedChange = onDynamicColorChange)
             }
+        }
+        if (usageAccessGranted != null) {
+            HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
+            SectionHeader(R.string.settings_section_watchdog)
+            UsageAccessRow(granted = usageAccessGranted, onClick = onUsageAccessClick)
         }
         HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
         SectionHeader(R.string.settings_section_about)
@@ -161,6 +178,28 @@ private fun DynamicColorRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit
         }
         Spacer(Modifier.width(16.dp))
         Switch(checked = checked, onCheckedChange = null)
+    }
+}
+
+@Composable
+private fun UsageAccessRow(granted: Boolean, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.settings_usage_access),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(if (granted) R.string.usage_access_status_on else R.string.usage_access_status_off),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
