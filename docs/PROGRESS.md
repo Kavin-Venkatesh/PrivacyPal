@@ -67,3 +67,95 @@
 - Final device check (moto g34, Android 15): all four tabs in light and dark, logcat clean, night mode restored.
 - Known cosmetic issue: commit fc67b2f's subject starts with a UTF-8 BOM (left as is; no history rewrite).
 - Merged to main, tagged `v0.0.1`.
+
+## Phase 1 – Permission Auditor (branch `phase-1-permission-auditor`)
+
+### 1.1 Package scanner
+- `domain/model/PermissionGroup` (14 groups; background location separate), `InstalledApp`, `AppCategory`,
+  `PermissionState`; `domain/permissions/PermissionGroups` maps ~50 raw permission names (incl. Android 16
+  health permissions) to groups; `domain/apps/visibleApps` hides system apps by default.
+- `data/scanner/InstalledAppsSource` + `PackageManagerAppsSource` (PackageInfoFlags on API 33+, int flags below;
+  granted = `REQUESTED_PERMISSION_GRANTED`; PrivacyPal excluded), `PackageInfoMapper`, lazy `AppIconLoader`
+  (LRU cache, never stored). Hilt `ScannerModule`, `DispatchersModule` (`@IoDispatcher`).
+- "System app" follows the system permission manager: preinstalled AND no launcher icon (so Chrome-like
+  preinstalled apps stay visible).
+- Manifest: `QUERY_ALL_PACKAGES` with a comment on the Play permissions declaration.
+- Tests: `PermissionGroupsTest`, `PackageInfoMapperTest` (Robolectric), `PackageManagerAppsSourceTest`
+  (Robolectric ShadowPackageManager), `AppListFilterTest`; device test `PackageManagerAppsSourceDeviceTest`.
+- Verified: build, 48 unit tests, lint/detekt/spotless clean, screenshots unchanged; connectedDebugAndroidTest 4/4
+  on moto g34 (scanner sees the installed apps, not itself; Settings visible with launcher icon).
+
+### 1.2 Persistence
+- Room database `privacypal.db` v1 (`data/db`): `AppEntity`, `PermissionGrantEntity` (FK cascade, index on group),
+  `AppWithGrants`, `AppDao` with transactional `replaceAll` / `replaceApp` (chunked so Android 10's 999-variable
+  SQLite limit is never hit). Schema exported to `app/schemas/` via the Room Gradle plugin.
+- `data/apps/AppsRepository` + `RoomAppsRepository`: `apps` Flow, `app(pkg)`, `refresh()` / `refresh(pkg)` behind a
+  mutex, `refreshState` (a failed full scan keeps the previous data and reports FAILED).
+- `AppsRefresher` (started from `PrivacyPalApplication`): full rescan whenever the app comes to the foreground
+  (`ProcessLifecycleOwner`), single-package rescan on PACKAGE_ADDED/REMOVED/REPLACED (runtime receiver, not exported).
+- Tests: `AppDaoTest` (7, incl. 1200 apps over the variable limit, cascade, Flow emissions), `RoomAppsRepositoryTest` (9).
+- Verified: build, 64 unit tests, lint/detekt/spotless clean, screenshots unchanged. On the moto g34: database holds
+  464 apps (360 system, 104 visible), 1420 grant rows, PrivacyPal itself excluded. Stored grants match
+  `dumpsys package` exactly for WhatsApp (16), Truecaller (12) and Subway Surfers (0). Installing a package while
+  the app was open added its row; uninstalling removed it. No errors from PrivacyPal in logcat.
+
+### 1.3 Risk rules
+- `domain/risk`: `RiskLevel` (NONE < LOW < MEDIUM < HIGH), `RiskReason` (17 plain-language reasons, mapped to
+  strings in `ui/risk/RiskText.kt`), `RiskRules` (category overrides as a data list + an exhaustive per-group
+  default), `assessApp()` → `AppRisk` (worst granted group, grants worst first, `flaggedCount` = MEDIUM/HIGH grants).
+- Apps declaring no category get MEDIUM with "This app doesn't say what it's for, so check whether it really needs
+  this." Background location, SMS and call logs stay HIGH regardless (MEDIUM only for Maps / Social).
+- Tests: `RiskRulesTest` checks all 140 group × category combinations against an independent copy of the approved
+  table, plus reasons; `AppRiskTest` (no permissions, denied ignored, worst-of aggregation, ordering, counts);
+  `RiskTextTest` (every reason/level has a distinct string; apostrophes render).
+- detekt: `CyclomaticComplexMethod.ignoreSimpleWhenEntries` so flat enum → resource mappings pass.
+- Verified: build, 81 unit tests, lint/detekt/spotless clean, screenshots unchanged. No UI yet, so no device check.
+
+### 1.4 Apps list
+- `domain/apps/AppQuery` (search by label/package, filters All/High risk/Camera/Microphone/Location incl.
+  background/Contacts, sorts Risk/Name/Recently installed, system toggle) and `AppsSummary` counts.
+- `ui/apps/AppsViewModel`: query kept in `SavedStateHandle`; Loading / Error (first scan failed, nothing stored) /
+  Content (with a "couldn't refresh, showing last check" banner when a rescan fails).
+- `AppsScreen`: summary card (tap a line → filter + scroll to the results), search, filter chips, sort menu, system
+  apps switch, rows with lazily loaded app icon, up to 5 permission icons and a `RiskBadge` (icon + text, never colour
+  alone). Each row is read by TalkBack as one sentence (name, risk, permissions). All text in strings.xml.
+- From this feature on, verification is on the phone (per user request: no new test files). Existing tests kept
+  green; the half-recorded Apps screenshot baselines were dropped.
+- Verified on moto g34 (Android 15): 104 apps / 17 high risk shown, real icons; search "whats" → WhatsApp (Review);
+  Microphone chip, summary tap → Camera filter and scrolls to results; sort by name; system toggle → 464 apps;
+  light and dark; rotation and process death keep filter; logcat clean. Night mode restored.
+
+### 1.5 App detail
+- Navigation: nested `AppsGraph` (list + `AppDetailRoute(packageName)`), so the Apps tab stays selected on detail.
+- `ui/apps/detail`: `AppDetailViewModel` (package from the route; Loading / NotInstalled / Content),
+  `AppDetailScreen` (icon, name, package, locale-formatted install date, risk badge; each granted group with icon,
+  badge and plain-language reason; "Asked for, but not allowed" list), `ManagePermissionsIntent`
+  (`ACTION_APPLICATION_DETAILS_SETTINGS` with a `package:` URI, falls back to Settings). The app is rescanned on
+  every resume, because permission changes in Settings send no broadcast.
+- Fixed: the search box dropped characters when typing fast (its text went through an async StateFlow); the text now
+  lives in synchronous Compose state in the ViewModel.
+- Verified on moto g34 (Android 15), no new test files: WhatsApp detail in light and dark; Manage permissions opens
+  the system App info page for WhatsApp, Back returns; `pm revoke` Adobe Scan CAMERA → after returning, Camera moves
+  to "Asked for, but not allowed" and the badge drops to Low; `pm grant` → back to Review (restored, dumpsys
+  granted=true); uninstalling an app while its detail is open shows "App not installed" and Back works; rotation
+  keeps the screen; typing "adobescan" via adb arrives intact; no PrivacyPal errors in logcat. Night mode restored.
+
+### 1.6 Home summary
+- `ui/home/HomeViewModel` + `HomeScreen`: "Permission check" card with apps checked, high-risk count, up to 3
+  riskiest apps (MEDIUM/HIGH, worst first; tap → app detail, Back → Home) and "See all apps" (→ Apps tab).
+  Loading state (with title) during the first scan; the original empty state if nothing has been checked.
+- `navigateToTopLevel` moved to `ui/navigation/TopLevelNavigation.kt` so Home can switch tabs.
+- Existing tests adjusted only: Home screenshot uses the Empty state (baseline unchanged); `NavigationTest` waits
+  for Home/Apps content, which now loads from the database asynchronously.
+- Verified on moto g34 (Android 15): 104 apps checked / 17 high-risk, top 3 Google, Phone, GPay; tap opens detail,
+  Back returns Home; See all apps opens the Apps tab; light, dark and landscape; logcat clean;
+  connectedDebugAndroidTest 4/4. Night mode restored.
+
+### Phase 1 end
+- Accuracy: stored grants match the system (`dumpsys package`, the same data Settings > Privacy > Permission manager
+  shows) for WhatsApp (16), Truecaller (12) and Subway Surfers (0). App info for WhatsApp lists the same groups.
+- Manage permissions → system App info → Back works; `pm revoke`/`pm grant` round trip on Adobe Scan CAMERA is
+  reflected on return (permission restored afterwards).
+- Rotation, process death (filters kept), light/dark, logcat clean; night mode restored to the user's setting.
+- From 1.4 on, verification was on the phone instead of new test files (user request).
+- Merged to main, tagged `v0.1.0`.

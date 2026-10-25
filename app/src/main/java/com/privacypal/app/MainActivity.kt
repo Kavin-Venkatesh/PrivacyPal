@@ -10,23 +10,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.privacypal.app.data.scanner.AppIconLoader
 import com.privacypal.app.domain.model.ThemeSettings
 import com.privacypal.app.domain.theme.resolveDarkTheme
 import com.privacypal.app.domain.theme.shouldUseDynamicColor
 import com.privacypal.app.ui.MainUiState
 import com.privacypal.app.ui.MainViewModel
 import com.privacypal.app.ui.PrivacyPalApp
+import com.privacypal.app.ui.components.LocalAppIconLoader
 import com.privacypal.app.ui.theme.PrivacyPalTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
+
+    @Inject
+    lateinit var appIconLoader: AppIconLoader
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -44,7 +51,9 @@ class MainActivity : ComponentActivity() {
                 darkTheme = darkTheme,
                 dynamicColor = shouldUseDynamicColor(settings.dynamicColor, Build.VERSION.SDK_INT),
             ) {
-                PrivacyPalApp()
+                CompositionLocalProvider(LocalAppIconLoader provides appIconLoader) {
+                    PrivacyPalApp()
+                }
             }
         }
     }

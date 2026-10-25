@@ -1,5 +1,7 @@
 package com.privacypal.app.di
 
+import com.privacypal.app.data.apps.AppsRepository
+import com.privacypal.app.data.apps.RoomAppsRepository
 import com.privacypal.app.data.settings.DataStoreSettingsRepository
 import com.privacypal.app.data.settings.SettingsRepository
 import dagger.Binds
@@ -15,4 +17,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: DataStoreSettingsRepository): SettingsRepository
+
+    @Binds
+    abstract fun bindAppsRepository(impl: RoomAppsRepository): AppsRepository
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
     alias(libs.plugins.hilt)
     alias(libs.plugins.roborazzi)
     alias(libs.plugins.detekt)
@@ -68,6 +69,11 @@ ksp {
     arg("room.generateKotlin", "true")
 }
 
+room {
+    // Exported schemas are committed so future migrations can be written and tested.
+    schemaDirectory("$projectDir/schemas")
+}
+
 roborazzi {
     outputDir.set(file("src/test/screenshots"))
 }
@@ -103,6 +109,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.hilt.android)

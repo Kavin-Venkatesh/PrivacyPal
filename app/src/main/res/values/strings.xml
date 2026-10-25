@@ -12,12 +12,104 @@
     <string name="home_empty_title">No privacy score yet</string>
     <string name="home_empty_message">Your privacy score will appear here once PrivacyPal has checked the apps on this phone.</string>
     <string name="home_empty_icon">Shield</string>
+    <string name="home_permissions_title">Permission check</string>
+    <plurals name="home_stat_checked">
+        <item quantity="one">app checked</item>
+        <item quantity="other">apps checked</item>
+    </plurals>
+    <plurals name="home_stat_high_risk">
+        <item quantity="one">high-risk app</item>
+        <item quantity="other">high-risk apps</item>
+    </plurals>
+    <string name="home_riskiest_title">Check these first</string>
+    <string name="home_no_risky_apps">No apps need a closer look right now.</string>
+    <string name="home_see_all_apps">See all apps</string>
 
     <!-- Apps -->
     <string name="apps_title">Apps</string>
-    <string name="apps_empty_title">No apps checked yet</string>
-    <string name="apps_empty_message">Installed apps and the permissions they use will be listed here.</string>
-    <string name="apps_empty_icon">App grid</string>
+    <string name="apps_search_placeholder">Search apps</string>
+    <string name="apps_search_icon">Search</string>
+    <string name="apps_search_clear">Clear search</string>
+    <string name="apps_filter_all">All</string>
+    <string name="apps_filter_high_risk">High risk</string>
+    <string name="apps_filter_camera">Camera</string>
+    <string name="apps_filter_microphone">Microphone</string>
+    <string name="apps_filter_location">Location</string>
+    <string name="apps_filter_contacts">Contacts</string>
+    <string name="apps_filter_selected">Selected</string>
+    <string name="apps_sort_icon">Sort</string>
+    <string name="apps_sort_current">Sort: %1$s</string>
+    <string name="apps_sort_risk">Highest risk first</string>
+    <string name="apps_sort_name">Name (A to Z)</string>
+    <string name="apps_sort_recent">Recently installed</string>
+    <string name="apps_show_system">Show system apps</string>
+    <plurals name="apps_summary_total">
+        <item quantity="one">%d app checked</item>
+        <item quantity="other">%d apps checked</item>
+    </plurals>
+    <plurals name="apps_summary_high_risk">
+        <item quantity="one">%d app is high risk</item>
+        <item quantity="other">%d apps are high risk</item>
+    </plurals>
+    <plurals name="apps_summary_microphone">
+        <item quantity="one">%d app can use your microphone</item>
+        <item quantity="other">%d apps can use your microphone</item>
+    </plurals>
+    <plurals name="apps_summary_camera">
+        <item quantity="one">%d app can use your camera</item>
+        <item quantity="other">%d apps can use your camera</item>
+    </plurals>
+    <plurals name="apps_summary_location">
+        <item quantity="one">%d app can see your location</item>
+        <item quantity="other">%d apps can see your location</item>
+    </plurals>
+    <plurals name="apps_summary_contacts">
+        <item quantity="one">%d app can read your contacts</item>
+        <item quantity="other">%d apps can read your contacts</item>
+    </plurals>
+    <string name="apps_summary_show">Show these apps</string>
+    <string name="apps_no_sensitive_permissions">No sensitive permissions</string>
+    <string name="apps_more_permissions">+%1$d</string>
+    <string name="apps_row_permissions">Can use %1$s</string>
+    <string name="apps_no_match_title">No apps match</string>
+    <string name="apps_no_match_message">Try a different search or filter.</string>
+    <string name="apps_clear_filters">Clear filters</string>
+    <string name="apps_none_title">No apps to show</string>
+    <string name="apps_none_message">Turn on \"Show system apps\" to see the apps that came with your phone.</string>
+    <string name="apps_loading">Checking your apps…</string>
+    <string name="apps_error_title">Couldn\'t check your apps</string>
+    <string name="apps_error_message">Something went wrong while reading the list of installed apps.</string>
+    <string name="apps_error_icon">Error</string>
+    <string name="apps_retry">Try again</string>
+    <string name="apps_refresh_failed">Couldn\'t refresh the list. Showing the last check.</string>
+
+    <!-- App detail -->
+    <string name="detail_back">Back</string>
+    <string name="detail_installed">Installed %1$s</string>
+    <string name="detail_manage_permissions">Manage permissions</string>
+    <string name="detail_manage_permissions_hint">Opens Android settings for this app. Come back here to see your changes.</string>
+    <string name="detail_section_granted">What this app can access</string>
+    <string name="detail_no_permissions">This app has no sensitive permissions.</string>
+    <string name="detail_section_denied">Asked for, but not allowed</string>
+    <string name="detail_not_installed_title">App not installed</string>
+    <string name="detail_not_installed_message">This app is no longer on your phone.</string>
+    <string name="detail_not_installed_icon">Removed app</string>
+
+    <!-- Permission groups -->
+    <string name="permission_group_camera">Camera</string>
+    <string name="permission_group_microphone">Microphone</string>
+    <string name="permission_group_location">Location</string>
+    <string name="permission_group_background_location">Location (all the time)</string>
+    <string name="permission_group_contacts">Contacts</string>
+    <string name="permission_group_sms">SMS</string>
+    <string name="permission_group_call_logs">Call logs</string>
+    <string name="permission_group_phone">Phone</string>
+    <string name="permission_group_body_sensors">Body sensors</string>
+    <string name="permission_group_physical_activity">Physical activity</string>
+    <string name="permission_group_nearby_devices">Nearby devices</string>
+    <string name="permission_group_media_files">Photos, media and files</string>
+    <string name="permission_group_calendar">Calendar</string>
+    <string name="permission_group_notifications">Notifications</string>
 
     <!-- Activity -->
     <string name="activity_title">Activity</string>
@@ -41,4 +133,27 @@
     <string name="settings_on_device_title">Everything stays on your phone</string>
     <string name="settings_on_device_summary">No accounts, no servers, no analytics.</string>
     <string name="settings_on_device_icon">Lock</string>
+
+    <!-- Risk -->
+    <string name="risk_level_none">No risk</string>
+    <string name="risk_level_low">Low</string>
+    <string name="risk_level_medium">Review</string>
+    <string name="risk_level_high">High risk</string>
+    <string name="risk_reason_expected">Apps like this one usually need this.</string>
+    <string name="risk_reason_undeclared_purpose">This app doesn\'t say what it\'s for, so check whether it really needs this.</string>
+    <string name="risk_reason_sensitive_check">This is sensitive. Check whether the app really needs it.</string>
+    <string name="risk_reason_microphone_unexpected">Apps like this one rarely need to record audio.</string>
+    <string name="risk_reason_camera_unexpected">Apps like this one rarely need to take photos or videos.</string>
+    <string name="risk_reason_contacts_unexpected">Apps like this one rarely need your contacts.</string>
+    <string name="risk_reason_location_unexpected">Apps like this one rarely need to know where you are.</string>
+    <string name="risk_reason_phone_unexpected">Apps like this one rarely need to make or manage phone calls.</string>
+    <string name="risk_reason_body_sensors_unexpected">Apps like this one rarely need your heart rate or other body data.</string>
+    <string name="risk_reason_physical_activity_unexpected">Apps like this one rarely need to track your steps and movement.</string>
+    <string name="risk_reason_calendar_unexpected">Apps like this one rarely need your calendar.</string>
+    <string name="risk_reason_background_location">This app can see where you are even when you\'re not using it.</string>
+    <string name="risk_reason_reads_messages">This app can read your text messages, including login codes.</string>
+    <string name="risk_reason_reads_call_history">This app can see who you call and when.</string>
+    <string name="risk_reason_media_access">This app can open photos, videos, music or files on your phone.</string>
+    <string name="risk_reason_nearby_devices">This app can find and connect to nearby devices, like headphones.</string>
+    <string name="risk_reason_notifications">This app can send you notifications.</string>
 </resources>
