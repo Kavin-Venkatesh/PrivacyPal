@@ -13,6 +13,9 @@ interface SensorEventDao {
     @Query("SELECT * FROM sensor_events ORDER BY startedAt DESC")
     fun observeAll(): Flow<List<SensorEventEntity>>
 
+    @Query("SELECT * FROM sensor_events WHERE id = :id")
+    suspend fun get(id: Long): SensorEventEntity?
+
     @Insert
     suspend fun insert(event: SensorEventEntity): Long
 

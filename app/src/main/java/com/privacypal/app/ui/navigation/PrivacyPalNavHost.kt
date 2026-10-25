@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.navDeepLink
 import com.privacypal.app.ui.activity.ActivityScreen
 import com.privacypal.app.ui.apps.AppsRoute as AppsScreenRoute
 import com.privacypal.app.ui.apps.detail.AppDetailRoute as AppDetailScreenRoute
@@ -35,7 +36,9 @@ fun PrivacyPalNavHost(navController: NavHostController, modifier: Modifier = Mod
                 AppDetailScreenRoute(onBack = { navController.popBackStack() })
             }
         }
-        composable<ActivityRoute> { ActivityScreen() }
+        composable<ActivityRoute>(
+            deepLinks = listOf(navDeepLink<ActivityRoute>(basePath = ActivityRoute.DEEP_LINK)),
+        ) { ActivityScreen() }
         navigation<SettingsGraph>(startDestination = SettingsRoute) {
             composable<SettingsRoute> {
                 SettingsScreenRoute(onUsageAccessClick = { navController.navigate(UsageAccessRoute) })

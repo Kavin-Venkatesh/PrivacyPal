@@ -37,6 +37,27 @@
     <string name="watchdog_channel_status_description">Shown while PrivacyPal watches the microphone and camera.</string>
     <string name="watchdog_status_title">Watching mic and camera</string>
     <string name="watchdog_status_text">PrivacyPal notes when an app uses them. Nothing is recorded.</string>
+    <string name="watchdog_channel_alerts">Mic and camera alerts</string>
+    <string name="watchdog_channel_alerts_description">When an app starts using the microphone or camera.</string>
+    <string name="watchdog_channel_urgent">Background and screen-off alerts</string>
+    <string name="watchdog_channel_urgent_description">When the microphone or camera is used while the screen is off or by an app that isn\'t on screen.</string>
+    <string name="alert_mic_in_use">Microphone in use</string>
+    <string name="alert_camera_in_use">Camera in use</string>
+    <string name="alert_mic_used">Microphone used for %1$s</string>
+    <string name="alert_camera_used">Camera used for %1$s</string>
+    <string name="alert_likely">Likely: %1$s</string>
+    <string name="alert_background">No app was on screen, so an app in the background used it.</string>
+    <string name="alert_unknown">App unknown. Turn on likely-app detection to see which app it probably was.</string>
+    <string name="alert_screen_off">The screen was off.</string>
+    <string name="alert_mute">Don\'t alert for %1$s</string>
+    <plurals name="duration_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="duration_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 
     <!-- Apps -->
     <string name="apps_title">Apps</string>

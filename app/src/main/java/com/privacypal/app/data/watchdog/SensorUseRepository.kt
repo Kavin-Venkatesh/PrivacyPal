@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.map
 interface SensorUseRepository {
     val uses: Flow<List<SensorUse>>
 
+    suspend fun get(id: Long): SensorUse?
+
     /** Returns the id of the new record. */
     suspend fun recordStart(session: SensorSession, screenOn: Boolean): Long
 
@@ -29,6 +31,8 @@ interface SensorUseRepository {
 class RoomSensorUseRepository @Inject constructor(private val dao: SensorEventDao) : SensorUseRepository {
 
     override val uses: Flow<List<SensorUse>> = dao.observeAll().map { rows -> rows.map { it.toDomain() } }
+
+    override suspend fun get(id: Long): SensorUse? = dao.get(id)?.toDomain()
 
     override suspend fun recordStart(session: SensorSession, screenOn: Boolean): Long =
         dao.insert(SensorEventEntity(sensor = session.sensor, startedAt = session.startedAtMs, screenOn = screenOn))

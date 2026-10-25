@@ -14,6 +14,13 @@ import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.merge
+
+/** Both monitors as one stream, for the watchdog. */
+class SensorMonitors @Inject constructor(private val mic: MicMonitor, private val camera: CameraMonitor) {
+    val events: Flow<SensorEvent>
+        get() = merge(mic.events, camera.events)
+}
 
 /**
  * Reports when any app starts or stops recording audio. Android does not tell normal apps WHICH app

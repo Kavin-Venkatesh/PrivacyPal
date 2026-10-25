@@ -236,3 +236,26 @@ test (user decision).
   - Toggle off → service and notification gone; on again → back. Light, dark and landscape checked. The phone's
     existing v1 database migrated to v2 in place (104 apps kept). Merged debug and release manifests: no
     RECORD_AUDIO or CAMERA; FGS type specialUse. Logcat clean.
+
+### 2.4 Alerts
+- `domain/watchdog/AlertRules`: NONE for a use already over in under a second or a muted likely app; URGENT when
+  the screen was off or no app was on screen (background use); otherwise NORMAL. Unknown apps are always alerted.
+- `service/SensorAlerter` (`NotificationSensorAlerter`): posts once the likely app is known (~2.5 s after the
+  start): "Microphone in use" / "Camera in use", "Likely: <app>" (or "No app was on screen…" / "App unknown…"),
+  plus "The screen was off." when it was, with the app icon. When the use ends, an alert still on screen is
+  updated silently to "… used for N seconds" (a dismissed one stays dismissed). Channels: `watchdog_alerts`
+  (DEFAULT) and `watchdog_alerts_urgent` (HIGH). Notifications off → nothing posted, use still recorded.
+- Tapping an alert opens the Activity tab through an explicit deep link `privacypal://activity?eventId=<id>`
+  (no intent filter, so other apps can't call it); `ActivityRoute` now carries the event id for 2.5.
+- "Don't alert for <app>" action → `MuteAlertsReceiver` (not exported) stores `app_rules.muteAlerts` and removes the
+  alert. `SensorMonitors` merges the two monitors (keeps the recorder's constructor small).
+- Verified on moto g34 (Android 15):
+  - Camera ~6 s → "Camera in use / Likely: Camera" with the camera icon (channel `watchdog_alerts`), updated to
+    "Camera used for 6 seconds" after closing. Voice assistant → "Microphone in use / Likely: Google", then
+    "Microphone used for 7 seconds". Shade checked in dark and light.
+  - Tap → PrivacyPal opens on the Activity tab with `eventId=9`, alert removed, Back → Home.
+  - "Don't alert for Camera" → alert removed, `app_rules` has `com.motorola.camera3 = 1`; the next camera use was
+    recorded (row 11) with no alert. (Camera stays muted until the 2.5 app-detail switch, which will undo it.)
+  - Channels: status LOW, alerts DEFAULT, urgent HIGH. The URGENT path (screen off / background use) could not be
+    triggered: no installed app could record in the background without setting it up and granting it the mic,
+    which would change the user's phone; the user chose to skip the screen-off trigger. Logcat clean.

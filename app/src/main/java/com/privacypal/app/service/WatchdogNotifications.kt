@@ -14,6 +14,10 @@ import com.privacypal.app.R
 object WatchdogNotifications {
     const val STATUS_CHANNEL_ID = "watchdog_status"
     const val STATUS_NOTIFICATION_ID = 1
+    const val ALERTS_CHANNEL_ID = "watchdog_alerts"
+
+    /** Screen off or no app on screen: may pop up over other apps. */
+    const val URGENT_CHANNEL_ID = "watchdog_alerts_urgent"
 
     fun createChannels(context: Context) {
         val status = NotificationChannel(
@@ -24,7 +28,18 @@ object WatchdogNotifications {
             description = context.getString(R.string.watchdog_channel_status_description)
             setShowBadge(false)
         }
-        context.getSystemService(NotificationManager::class.java).createNotificationChannel(status)
+        val alerts = NotificationChannel(
+            ALERTS_CHANNEL_ID,
+            context.getString(R.string.watchdog_channel_alerts),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply { description = context.getString(R.string.watchdog_channel_alerts_description) }
+        val urgent = NotificationChannel(
+            URGENT_CHANNEL_ID,
+            context.getString(R.string.watchdog_channel_urgent),
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply { description = context.getString(R.string.watchdog_channel_urgent_description) }
+        context.getSystemService(NotificationManager::class.java)
+            .createNotificationChannels(listOf(status, alerts, urgent))
     }
 
     /** The ongoing notification Android requires while the watchdog runs. */

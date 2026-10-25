@@ -59,6 +59,10 @@
                 android:value="Privacy monitor: listens to system callbacks that report when the microphone or camera starts and stops being used by any app, and notifies the user. Does not record audio or use the camera." />
         </service>
 
+        <receiver
+            android:name=".service.MuteAlertsReceiver"
+            android:exported="false" />
+
         <!-- Exported so the system can deliver boot and app-update broadcasts; checks the action. -->
         <receiver
             android:name=".service.WatchdogStartReceiver"

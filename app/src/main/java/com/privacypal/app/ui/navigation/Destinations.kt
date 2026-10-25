@@ -28,8 +28,16 @@ data object AppsRoute
 @Serializable
 data class AppDetailRoute(val packageName: String)
 
+/** The Activity tab; [eventId] is a mic/camera use to show, from an alert's deep link. */
 @Serializable
-data object ActivityRoute
+data class ActivityRoute(val eventId: Long = NO_EVENT) {
+    companion object {
+        const val NO_EVENT = -1L
+
+        /** Deep link base; alerts open `privacypal://activity?eventId=<id>` with an explicit intent. */
+        const val DEEP_LINK = "privacypal://activity"
+    }
+}
 
 /** Nested graph for the Settings tab: settings and the usage access explanation. */
 @Serializable
@@ -51,7 +59,7 @@ enum class TopLevelDestination(
     HOME(HomeRoute, HomeRoute::class, Icons.Filled.Home, Icons.Outlined.Home, R.string.nav_home),
     APPS(AppsGraph, AppsGraph::class, Icons.Filled.Apps, Icons.Outlined.Apps, R.string.nav_apps),
     ACTIVITY(
-        ActivityRoute,
+        ActivityRoute(),
         ActivityRoute::class,
         Icons.Filled.Timeline,
         Icons.Outlined.Timeline,
