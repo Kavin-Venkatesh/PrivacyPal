@@ -1,3 +1,44 @@
 <resources>
     <string name="app_name">PrivacyPal</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_apps">Apps</string>
+    <string name="nav_activity">Activity</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="home_title">Your privacy</string>
+    <string name="home_empty_title">No privacy score yet</string>
+    <string name="home_empty_message">Your privacy score will appear here once PrivacyPal has checked the apps on this phone.</string>
+    <string name="home_empty_icon">Shield</string>
+
+    <!-- Apps -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_empty_title">No apps checked yet</string>
+    <string name="apps_empty_message">Installed apps and the permissions they use will be listed here.</string>
+    <string name="apps_empty_icon">App grid</string>
+
+    <!-- Activity -->
+    <string name="activity_title">Activity</string>
+    <string name="activity_empty_title">Nothing recorded yet</string>
+    <string name="activity_empty_message">When apps use your microphone, camera or contact trackers, it will show up here.</string>
+    <string name="activity_empty_icon">Timeline</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Dynamic colour</string>
+    <string name="settings_dynamic_color_summary">Use colours from your wallpaper</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_licence">Licence</string>
+    <string name="settings_licence_value">GPL-3.0</string>
+    <string name="settings_on_device_title">Everything stays on your phone</string>
+    <string name="settings_on_device_summary">No accounts, no servers, no analytics.</string>
+    <string name="settings_on_device_icon">Lock</string>
 </resources>

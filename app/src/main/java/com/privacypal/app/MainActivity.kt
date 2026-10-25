@@ -9,18 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.privacypal.app.domain.model.ThemeSettings
@@ -28,6 +19,7 @@ import com.privacypal.app.domain.theme.resolveDarkTheme
 import com.privacypal.app.domain.theme.shouldUseDynamicColor
 import com.privacypal.app.ui.MainUiState
 import com.privacypal.app.ui.MainViewModel
+import com.privacypal.app.ui.PrivacyPalApp
 import com.privacypal.app.ui.theme.PrivacyPalTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -52,17 +44,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = darkTheme,
                 dynamicColor = shouldUseDynamicColor(settings.dynamicColor, Build.VERSION.SDK_INT),
             ) {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier.safeDrawingPadding(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
-                    }
-                }
+                PrivacyPalApp()
             }
         }
     }

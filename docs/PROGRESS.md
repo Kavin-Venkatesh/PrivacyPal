@@ -33,3 +33,14 @@
   on Windows hosts (`File.renameTo`); production on Android is unaffected.
 - Verified: build, 18/18 unit tests, lint clean; launched on device, follows system dark mode, logcat clean.
   In-app switching is verified on device in 0.4 once the Settings screen exists.
+
+### 0.4 Navigation shell
+- `ui/navigation/Destinations.kt` (`@Serializable` routes + `TopLevelDestination`), `PrivacyPalNavHost.kt`,
+  `ui/PrivacyPalApp.kt` (Scaffold + NavigationBar, save/restore tab state, Back -> Home -> exit).
+- `ui/components/EmptyState.kt`; Home/Apps/Activity placeholder screens with real empty-state copy.
+- `ui/settings/SettingsScreen.kt` + `SettingsViewModel`: theme radio group, dynamic colour switch (API 31+ only),
+  About (version, GPL-3.0, "Everything stays on your phone"). `LICENSE` (GPL-3.0) added.
+- Tests: `SettingsViewModelTest` (4). Total 22 unit tests.
+- Device (moto g34, Android 15): all four tabs in light and dark; in-app theme overrides the system both ways
+  (status bar icons follow); brand scheme with dynamic colour off; rotation and process death keep the tab;
+  Back behaviour correct; logcat clean. Found and fixed: tab labels were hidden from TalkBack.
