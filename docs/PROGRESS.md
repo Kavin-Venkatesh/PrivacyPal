@@ -296,3 +296,15 @@ test (user decision).
     screen" and sent an URGENT alert (channel `watchdog_alerts_urgent`); `dumpsys media.camera` shows the same
     CONNECT/DISCONNECT times. This exercised the urgent path that adb could not trigger in 2.4.
   - Logcat clean.
+
+### Phase 2 end
+- Merged debug and release manifests: no RECORD_AUDIO, CAMERA or INTERNET; `MonitorDebugReceiver` only in debug;
+  WatchdogService type `specialUse`.
+- Reboot test skipped (user's choice). Boot restart uses the same `WatchdogStartReceiver` path as the app-update
+  restart (MY_PACKAGE_REPLACED), which was verified; BOOT_COMPLETED itself was not seen on the phone.
+- Not checked on a device: Android 10 (only an Android 15 phone), Android 17 (target SDK; no FGS changes listed
+  for specialUse), torch filtering, a real screen-off mic/camera use.
+- Known behaviour to revisit: with auto-rotate on, Android System Intelligence opens the front camera for ~2 s
+  around rotations, so each one produces an urgent "background" alert that can't be muted per app (no package).
+- At the user's request the watchdog stays on with usage access and notifications granted; night mode restored.
+- Merged to main, tagged `v0.2.0`.

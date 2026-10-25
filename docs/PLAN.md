@@ -10,7 +10,8 @@ was verified is logged in `docs/PROGRESS.md`.
 |---|---|---|---|
 | 0 – Foundation: project setup, light/dark theme, theme setting, navigation shell, test + quality toolchain, CI | `phase-0-foundation` | `v0.0.1` | Done |
 | 1 – Permission Auditor: scan apps and granted permissions, persist, risk rules, apps list, app detail, home summary | `phase-1-permission-auditor` | `v0.1.0` | Done |
-| Later phases (from the product scope in `CLAUDE.md`): mic/camera watchdog, local-VPN tracker blocker, tracker SDK scanner, privacy score | – | – | Not started; briefs to come |
+| 2 – Mic and Camera Watchdog: sensor monitors, likely-app detection + usage access onboarding, foreground service + storage, alerts, Activity history + retention | `phase-2-watchdog` | `v0.2.0` | Done |
+| Later phases (from the product scope in `CLAUDE.md`): local-VPN tracker blocker, tracker SDK scanner, privacy score | – | – | Not started; briefs to come |
 
 ## Data model (Room, `privacypal.db`)
 
@@ -21,6 +22,27 @@ was verified is logged in `docs/PROGRESS.md`.
   (`PermissionGroup` name, indexed), `granted`. `packageName` → `apps.packageName`, ON DELETE CASCADE.
 - Only tracked (dangerous/runtime) permissions are stored; icons are never stored. Exported schemas live in
   `app/schemas/`; any schema change needs a version bump and a migration test.
+
+### v2 (Phase 2, `AutoMigration(1 → 2)`, tested by `MigrationTest`)
+- `sensor_events` – `SensorEventEntity`: `id` (PK, auto), `sensor` (MICROPHONE/CAMERA), `startedAt` (indexed),
+  `endedAt` (null while in use or if `interrupted`), `interrupted`, `screenOn`, `likelyResolved`, `likelyPackage`
+  (indexed), `confidence` (HIGH/MEDIUM/LOW), `appInForeground` (null without usage access).
+- `app_rules` – `AppRuleEntity`: `packageName` (PK), `muteAlerts`.
+- Kept 7 / 30 / 90 days (default 30, DataStore `history_retention_days`); daily `HistoryCleanupWorker`.
+
+## Mic and camera watchdog (Phase 2)
+
+- Android doesn't tell normal apps which app uses the mic or camera. PrivacyPal listens to
+  `AudioManager.AudioRecordingCallback` and `CameraManager.AvailabilityCallback` (flashlight ignored via
+  `TorchCallback`) and names the LIKELY app: the app on screen when the use started, from usage events (needs the
+  user to grant usage access). Never shown as certain.
+- Likely-app confidence: on screen within 2 s of the start → HIGH, within 60 s → MEDIUM, longer → LOW. Home
+  screens, System UI and PrivacyPal are ignored; if nothing else was on screen it was a background app.
+- Runs in `WatchdogService`, foreground service type `specialUse` (no RECORD_AUDIO/CAMERA; camera/microphone types
+  need those permissions and can't start from BOOT_COMPLETED; dataSync is time-limited). Restarted after boot,
+  app update and process death.
+- Alerts: none for a use already over in under 1 s or a muted app; HIGH-importance channel when the screen was off
+  or no app was on screen; DEFAULT otherwise.
 
 ## Risk rules (Phase 1)
 
