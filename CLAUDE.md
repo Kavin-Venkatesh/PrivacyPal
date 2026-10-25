@@ -54,16 +54,22 @@ com.privacypal.app/
 
 ## Definition of Done (a feature is done only when ALL pass)
 
+Verification is done on the phone, not with new test files. Do not write new unit, screenshot or
+UI test files; keep the existing tests compiling and passing (minimal fixes only) so CI stays green.
+
 1. `./gradlew assembleDebug` succeeds with no new warnings you can fix.
-2. `./gradlew testDebugUnitTest` passes; new logic has unit tests (happy path + edge cases).
-3. Screenshot tests recorded for every new/changed screen in light AND dark; you have opened the
-   PNGs and checked: no clipped/overlapping text, readable contrast, correct spacing, no placeholder text.
-4. `./gradlew lintDebug` and the formatter/static checks pass (or warnings are explained).
-5. If a device is connected (`adb devices`): install, launch, exercise the feature with adb,
-   take screenshots in light and dark (`adb shell cmd uimode night yes|no`), look at them,
-   and check Logcat for crashes or errors from com.privacypal.app.
-6. Edge cases handled: permission denied, empty data, rotation, process death, Android 10 vs latest.
-7. docs/PROGRESS.md updated with what was built and how it was verified.
+2. Existing checks pass: `./gradlew testDebugUnitTest verifyRoborazziDebug`.
+3. `./gradlew lintDebug` and the formatter/static checks (spotless, detekt) pass (or warnings are explained).
+4. On the connected phone (`adb devices`): install, launch, exercise every part of the feature with adb,
+   take screenshots in light and dark (`adb shell cmd uimode night yes|no`), open them and check:
+   no clipped/overlapping text, readable contrast, correct spacing, no placeholder text.
+   Check Logcat for crashes or errors from com.privacypal.app. Restore the phone's own settings
+   (night mode, rotation, any permission changed with `pm revoke/grant`) afterwards.
+5. Before sending any adb input, confirm PrivacyPal is the foreground app; if the user is using
+   the phone, stop and ask.
+6. Edge cases checked on the phone: permission denied, empty data, rotation, process death,
+   Android 10 vs latest (note when Android 10 could not be checked on a device).
+7. docs/PROGRESS.md updated with what was built and how it was verified on the phone.
 
 ## Git protocol
 
