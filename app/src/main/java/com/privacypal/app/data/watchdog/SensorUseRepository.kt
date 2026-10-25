@@ -26,6 +26,9 @@ interface SensorUseRepository {
 
     /** Called when the watchdog starts: anything still open was cut off by an earlier stop. */
     suspend fun markOpenInterrupted()
+
+    /** Deletes uses that started before [cutoffMs]; returns how many. */
+    suspend fun deleteStartedBefore(cutoffMs: Long): Int
 }
 
 class RoomSensorUseRepository @Inject constructor(private val dao: SensorEventDao) : SensorUseRepository {
@@ -45,6 +48,8 @@ class RoomSensorUseRepository @Inject constructor(private val dao: SensorEventDa
     override suspend fun discard(id: Long) = dao.delete(id)
 
     override suspend fun markOpenInterrupted() = dao.markOpenInterrupted()
+
+    override suspend fun deleteStartedBefore(cutoffMs: Long): Int = dao.deleteStartedBefore(cutoffMs)
 }
 
 private fun SensorEventEntity.toDomain() = SensorUse(

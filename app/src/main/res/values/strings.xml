@@ -150,6 +150,37 @@
     <string name="activity_empty_title">Nothing recorded yet</string>
     <string name="activity_empty_message">Apps using your microphone or camera, and connections to trackers, will show up here.</string>
     <string name="activity_empty_icon">Timeline</string>
+    <string name="activity_watchdog_off_message">Turn on \"Watch mic and camera\" on Home to see when apps use your microphone or camera.</string>
+    <string name="activity_filter_mic">Microphone</string>
+    <string name="activity_filter_camera">Camera</string>
+    <string name="activity_filter_screen_off">Screen off</string>
+    <string name="activity_filter_all_apps">All apps</string>
+    <string name="activity_filtered_empty_title">Nothing matches</string>
+    <string name="activity_filtered_empty_message">No microphone or camera use matches these filters.</string>
+    <string name="activity_clear_filters">Clear filters</string>
+    <string name="activity_today">Today</string>
+    <string name="activity_yesterday">Yesterday</string>
+    <string name="use_unknown_app">Unknown app</string>
+    <string name="use_background_app">An app in the background</string>
+    <string name="use_checking">Checking which app…</string>
+    <string name="use_confidence_high">Likely app (strong match)</string>
+    <string name="use_confidence_medium">Likely app (fair match)</string>
+    <string name="use_confidence_low">Likely app (weak match)</string>
+    <string name="use_no_access">Turn on likely-app detection to see which app it probably was</string>
+    <string name="use_no_app_on_screen">No app was on screen</string>
+    <string name="use_in_progress">in use now</string>
+    <string name="use_interrupted">end not recorded</string>
+    <string name="use_screen_off">Screen off</string>
+    <string name="use_summary">%1$s · %2$s · %3$s</string>
+    <string name="detail_section_sensor_history">Mic and camera history</string>
+    <string name="detail_sensor_alerts">Alert when this app uses them</string>
+    <string name="detail_sensor_alerts_summary">Use is still recorded when alerts are off.</string>
+    <string name="detail_sensor_history_empty">No microphone or camera use recorded for this app.</string>
+    <string name="settings_retention">Keep mic and camera history for</string>
+    <plurals name="settings_retention_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

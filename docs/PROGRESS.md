@@ -259,3 +259,40 @@ test (user decision).
   - Channels: status LOW, alerts DEFAULT, urgent HIGH. The URGENT path (screen off / background use) could not be
     triggered: no installed app could record in the background without setting it up and granting it the mic,
     which would change the user's phone; the user chose to skip the screen-off trigger. Logcat clean.
+
+### 2.5 Activity history and retention
+- `domain/watchdog/ActivityTimeline`: filter (sensors, screen off, likely app), group by local day (newest first),
+  likely apps for the app filter (most frequent first). `HistoryRetention`: 7 / 30 / 90 days, default 30.
+- Activity tab: timeline grouped by day ("Today", "Yesterday", full date) with filter chips Microphone, Camera,
+  Screen off and an app menu; selected chips get a check mark (not colour alone). Each row: likely app icon and
+  name (or "An app in the background" / "Unknown app" / "Checking which app…"), sensor, start time, duration
+  (rounded; "in use now" / "end not recorded"), match strength ("Likely app (strong/fair/weak match)"), and a
+  "Screen off" label with icon. Tapping a row with a likely app opens its app detail. Filters live in
+  SavedStateHandle. An alert's `eventId` is highlighted and scrolled to. Empty state says to turn on the
+  watchdog when it is off.
+- App detail: "Mic and camera history" section with the "Alert when this app uses them" switch
+  (`app_rules`, undoes the notification's mute) and the app's 10 most recent uses.
+- Settings > Mic and camera: "Keep mic and camera history for" 7 / 30 / 90 days (DataStore); changing it deletes
+  older history at once. `work/HistoryCleanupWorker` (@HiltWorker) runs daily (unique periodic work, KEEP);
+  WorkManager now starts from `PrivacyPalApplication` (Configuration.Provider + HiltWorkerFactory; default
+  initializer removed in the manifest).
+- `MainActivity` is now `singleTask` and forwards new intents to the NavController. Found on the phone: after
+  opening PrivacyPal from an alert, the launcher icon started a second MainActivity on top (fresh Home) instead
+  of returning to the restored one.
+- Verified on moto g34 (Android 15):
+  - Timeline in dark (landscape) and light (portrait); Microphone filter → only the two Google rows; Screen off
+    → "Nothing matches" + "Clear filters" restores the list; app menu lists Camera and Google; selecting Google
+    filters to it.
+  - Alert tap → Activity tab with the new camera use highlighted at the top; Back/launcher behave.
+  - Row tap → Camera's app detail: history section and switch (off from the 2.4 mute); switch on →
+    `app_rules` camera3 = 0. Back → timeline.
+  - Process death (kill -9 in background) with the Microphone filter → relaunch shows the timeline still
+    filtered.
+  - Settings: retention shows 30 by default; 7 selected and saved; today's 19 camera rows kept; set back to 30.
+    Daily cleanup job is scheduled with JobScheduler (next run ~24 h). Old-row deletion itself was not seen on
+    the phone (no history older than 7 days yet).
+  - Real finding: with auto-rotate on, Android System Intelligence (`com.google.android.as`) opens the front
+    camera for ~2 s around screen rotations. PrivacyPal recorded each as "An app in the background, no app on
+    screen" and sent an URGENT alert (channel `watchdog_alerts_urgent`); `dumpsys media.camera` shows the same
+    CONNECT/DISCONNECT times. This exercised the urgent path that adb could not trigger in 2.4.
+  - Logcat clean.

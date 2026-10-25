@@ -129,7 +129,7 @@ class NotificationSensorAlerter @Inject constructor(
     }
 
     private fun formatDuration(ms: Long): String {
-        val seconds = (ms / MS_PER_SECOND).toInt().coerceAtLeast(1)
+        val seconds = ((ms + MS_PER_SECOND / 2) / MS_PER_SECOND).toInt().coerceAtLeast(1)
         return if (seconds < SECONDS_PER_MINUTE) {
             context.resources.getQuantityString(R.plurals.duration_seconds, seconds, seconds)
         } else {

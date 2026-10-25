@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -42,12 +43,18 @@ import com.privacypal.app.R
 import com.privacypal.app.domain.model.ThemeMode
 import com.privacypal.app.domain.model.ThemeSettings
 import com.privacypal.app.domain.theme.supportsDynamicColor
+import com.privacypal.app.domain.watchdog.HistoryRetention
 import com.privacypal.app.ui.components.ScreenTitle
 
 @Composable
-fun SettingsRoute(onUsageAccessClick: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsRoute(
+    onUsageAccessClick: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+    historyViewModel: HistorySettingsViewModel = hiltViewModel(),
+) {
     val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
     val usageAccessGranted by viewModel.usageAccessGranted.collectAsStateWithLifecycle()
+    val retentionDays by historyViewModel.retentionDays.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.refreshUsageAccess()
         onPauseOrDispose {}
@@ -60,6 +67,8 @@ fun SettingsRoute(onUsageAccessClick: () -> Unit, viewModel: SettingsViewModel =
         onDynamicColorChange = viewModel::setDynamicColor,
         usageAccessGranted = usageAccessGranted,
         onUsageAccessClick = onUsageAccessClick,
+        retentionDays = retentionDays,
+        onRetentionChange = historyViewModel::setRetentionDays,
     )
 }
 
@@ -74,6 +83,9 @@ fun SettingsScreen(
     /** Null hides the mic and camera section. */
     usageAccessGranted: Boolean? = null,
     onUsageAccessClick: () -> Unit = {},
+    /** Null hides the history setting. */
+    retentionDays: Int? = null,
+    onRetentionChange: (Int) -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -96,6 +108,7 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
             SectionHeader(R.string.settings_section_watchdog)
             UsageAccessRow(granted = usageAccessGranted, onClick = onUsageAccessClick)
+            retentionDays?.let { RetentionSelector(selected = it, onSelect = onRetentionChange) }
         }
         HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
         SectionHeader(R.string.settings_section_about)
@@ -146,6 +159,36 @@ private fun ThemeSelector(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
                 Spacer(Modifier.width(16.dp))
                 Text(
                     text = stringResource(mode.labelRes()),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RetentionSelector(selected: Int, onSelect: (Int) -> Unit) {
+    Text(
+        text = stringResource(R.string.settings_retention),
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    )
+    Column(Modifier.selectableGroup()) {
+        HistoryRetention.OPTIONS_DAYS.forEach { days ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .selectable(selected = days == selected, onClick = { onSelect(days) }, role = Role.RadioButton)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(selected = days == selected, onClick = null)
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    text = pluralStringResource(R.plurals.settings_retention_days, days, days),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                 )

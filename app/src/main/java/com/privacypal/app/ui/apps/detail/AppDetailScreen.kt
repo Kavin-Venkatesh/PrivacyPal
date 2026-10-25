@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,6 +24,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -32,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -48,12 +52,14 @@ import com.privacypal.app.ui.components.RiskBadge
 import com.privacypal.app.ui.risk.icon
 import com.privacypal.app.ui.risk.labelRes
 import com.privacypal.app.ui.risk.textRes
+import com.privacypal.app.ui.watchdog.SensorUseRow
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
 fun AppDetailRoute(onBack: () -> Unit, viewModel: AppDetailViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val sensorHistory by viewModel.sensorHistory.collectAsStateWithLifecycle()
     val context = LocalContext.current
     // Permission changes in Settings send no broadcast, so rescan whenever the user returns.
     LifecycleResumeEffect(viewModel) {
@@ -64,6 +70,8 @@ fun AppDetailRoute(onBack: () -> Unit, viewModel: AppDetailViewModel = hiltViewM
         state = state,
         onBack = onBack,
         onManagePermissions = { context.openManagePermissions(viewModel.packageName) },
+        sensorHistory = sensorHistory,
+        onAlertsChange = viewModel::setAlertsOn,
     )
 }
 
@@ -74,6 +82,9 @@ fun AppDetailScreen(
     onBack: () -> Unit,
     onManagePermissions: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Null hides the mic and camera section. */
+    sensorHistory: AppSensorHistory? = null,
+    onAlertsChange: (Boolean) -> Unit = {},
 ) {
     Column(modifier.fillMaxSize()) {
         TopAppBar(
@@ -93,13 +104,15 @@ fun AppDetailScreen(
 
             AppDetailUiState.NotInstalled -> NotInstalled(onBack)
 
-            is AppDetailUiState.Content -> DetailContent(state.rated, onManagePermissions)
+            is AppDetailUiState.Content -> DetailContent(state.rated, onManagePermissions) {
+                sensorHistory?.let { SensorHistorySection(state.rated.app.label, it, onAlertsChange) }
+            }
         }
     }
 }
 
 @Composable
-private fun DetailContent(rated: RatedApp, onManagePermissions: () -> Unit) {
+private fun DetailContent(rated: RatedApp, onManagePermissions: () -> Unit, extra: @Composable () -> Unit) {
     val app = rated.app
     val denied = app.permissions
         .filter { !it.granted }
@@ -148,6 +161,47 @@ private fun DetailContent(rated: RatedApp, onManagePermissions: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        extra()
+    }
+}
+
+@Composable
+private fun SensorHistorySection(label: String, history: AppSensorHistory, onAlertsChange: (Boolean) -> Unit) {
+    SectionTitle(stringResource(R.string.detail_section_sensor_history))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .toggleable(value = history.alertsOn, onValueChange = onAlertsChange, role = Role.Switch)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.detail_sensor_alerts),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.detail_sensor_alerts_summary),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(16.dp))
+        Switch(checked = history.alertsOn, onCheckedChange = null)
+    }
+    if (history.recent.isEmpty()) {
+        Text(
+            text = stringResource(R.string.detail_sensor_history_empty),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
+    history.recent.forEach { use ->
+        SensorUseRow(use = use, appLabel = label)
+        HorizontalDivider(Modifier.padding(start = 72.dp))
     }
 }
 

@@ -42,6 +42,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.PrivacyPal.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -58,6 +59,18 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Privacy monitor: listens to system callbacks that report when the microphone or camera starts and stops being used by any app, and notifies the user. Does not record audio or use the camera." />
         </service>
+
+        <!-- WorkManager is initialised by PrivacyPalApplication (Hilt worker factory), not on startup. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
         <receiver
             android:name=".service.MuteAlertsReceiver"
