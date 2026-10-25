@@ -84,3 +84,17 @@
   (Robolectric ShadowPackageManager), `AppListFilterTest`; device test `PackageManagerAppsSourceDeviceTest`.
 - Verified: build, 48 unit tests, lint/detekt/spotless clean, screenshots unchanged; connectedDebugAndroidTest 4/4
   on moto g34 (scanner sees the installed apps, not itself; Settings visible with launcher icon).
+
+### 1.2 Persistence
+- Room database `privacypal.db` v1 (`data/db`): `AppEntity`, `PermissionGrantEntity` (FK cascade, index on group),
+  `AppWithGrants`, `AppDao` with transactional `replaceAll` / `replaceApp` (chunked so Android 10's 999-variable
+  SQLite limit is never hit). Schema exported to `app/schemas/` via the Room Gradle plugin.
+- `data/apps/AppsRepository` + `RoomAppsRepository`: `apps` Flow, `app(pkg)`, `refresh()` / `refresh(pkg)` behind a
+  mutex, `refreshState` (a failed full scan keeps the previous data and reports FAILED).
+- `AppsRefresher` (started from `PrivacyPalApplication`): full rescan whenever the app comes to the foreground
+  (`ProcessLifecycleOwner`), single-package rescan on PACKAGE_ADDED/REMOVED/REPLACED (runtime receiver, not exported).
+- Tests: `AppDaoTest` (7, incl. 1200 apps over the variable limit, cascade, Flow emissions), `RoomAppsRepositoryTest` (9).
+- Verified: build, 64 unit tests, lint/detekt/spotless clean, screenshots unchanged. On the moto g34: database holds
+  464 apps (360 system, 104 visible), 1420 grant rows, PrivacyPal itself excluded. Stored grants match
+  `dumpsys package` exactly for WhatsApp (16), Truecaller (12) and Subway Surfers (0). Installing a package while
+  the app was open added its row; uninstalling removed it. No errors from PrivacyPal in logcat.
