@@ -150,3 +150,12 @@
 - Verified on moto g34 (Android 15): 104 apps checked / 17 high-risk, top 3 Google, Phone, GPay; tap opens detail,
   Back returns Home; See all apps opens the Apps tab; light, dark and landscape; logcat clean;
   connectedDebugAndroidTest 4/4. Night mode restored.
+
+### Phase 1 end
+- Accuracy: stored grants match the system (`dumpsys package`, the same data Settings > Privacy > Permission manager
+  shows) for WhatsApp (16), Truecaller (12) and Subway Surfers (0). App info for WhatsApp lists the same groups.
+- Manage permissions → system App info → Back works; `pm revoke`/`pm grant` round trip on Adobe Scan CAMERA is
+  reflected on return (permission restored afterwards).
+- Rotation, process death (filters kept), light/dark, logcat clean; night mode restored to the user's setting.
+- From 1.4 on, verification was on the phone instead of new test files (user request).
+- Merged to main, tagged `v0.1.0`.
